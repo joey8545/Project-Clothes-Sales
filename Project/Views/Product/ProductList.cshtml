@@ -1,0 +1,144 @@
+﻿@model List<Project.Models.CProductWrap>
+
+@{
+    Layout = "~/Views/Shared/Front_Layout.cshtml";
+    var currentSort = Context.Request.Query["sortBy"].ToString().ToLower();
+    var keyword = ViewBag.Keyword as string ?? "";
+
+}
+@section styles {
+    <style>
+        .card:hover {
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+        .card-body {
+            position: relative;
+            justify-content: space-between;
+            font-size: 18px;
+        }
+
+        .favorite {
+            font-size: 20px;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: gray !important;
+        }
+
+        .bi-heart-fill {
+            color: indianred !important;
+        }
+
+    </style>
+}
+
+<!-- 產品列表 -->
+<div class="container">
+    <h2 class="text-center mt-3">@keyword</h2>
+    <div class="text-end text-muted mb-3">
+        <a href="/Product/ProductList" class="text-reset @(currentSort == "" ? "fw-bold" : "")">全部商品</a> |
+        <a href="/Product/ProductList?sortby=hot&keyword=@keyword" class="text-reset @(currentSort == "hot" ? "fw-bold" : "")">熱銷排序</a> |
+        <a href="/Product/ProductList?sortby=price_asc&keyword=@keyword" class="text-reset @(currentSort == "price_asc" ? "fw-bold" : "")">價格低到高</a> |
+        <a href="/Product/ProductList?sortby=price_desc&keyword=@keyword" class="text-reset @(currentSort == "price_desc" ? "fw-bold" : "")">價格高到低</a>
+    </div>
+    <div class="row mb-5 text-center">
+        @if (!Model.Any(m => !m.PisHided))
+        {
+            <div class="col-12">
+                <p class="text-center mt-5">找不到符合條件的商品。</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model.Where(m => m.Pinventory != 0))
+            {
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card mb-3">
+                        <i class="bi bi-heart favorite" data-id="@item.Pid" onclick="addToFavorite('@item.Pid', '@item.Pname', '@item.Pphoto', '@item.Pprice', this)"></i>
+                        <a href="@Url.Action("ProductDetail",new { id = item.Pid })">
+
+                            <img src="~/images/@item.Pphoto" alt="" class="card-img-top" />
+                        </a>
+                        <div class="card-body">
+                            <a href="@Url.Action("ProductDetail",new { id = item.Pid })">
+                                <div class="card-title mt-2 fw-bold ps-2" style="color:dimgray">@Html.DisplayFor(modelItem => item.Pname)</div>
+                            </a>
+                            <div class="card-text mt-1 ps-2 pb-2" style="color:black">NT$ @Html.DisplayFor(modelItem => item.Pprice)</div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // 取得使用者已收藏的商品 ID 並標記紅色
+            $.ajax({
+                url: "/Ajax/GetFavoriteID",
+                type: "GET",
+                success: function (favoriteIDs) {
+                    favoriteIDs.forEach(function (pid) {
+                        let heartIcon = $(`.favorite[data-id='${pid}']`);
+                        heartIcon.removeClass("bi-heart").addClass("bi-heart-fill text-danger");
+                    });
+                },
+                error: function () {
+                    console.log("無法獲取收藏資料");
+                }
+            });
+        });
+
+        function addToFavorite(pid, pname, pphoto, pprice, element) {
+            $.ajax({
+                url: "/Ajax/PostFavorite",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    PId: pid,
+                    PName: pname,
+                    PPhoto: pphoto,
+                    PPrice: pprice
+                }),
+                success: function (response) {
+                    if (response === "請先登入會員") {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "請先登入會員",
+                        });
+                    } else if (response === "已加入收藏" || response === "已移除收藏") {
+                        toggleFavoriteUI(element);
+                        Swal.fire({
+                            icon: "success",
+                            title: response,
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "操作發生錯誤，請稍後再試",
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "系統錯誤，請稍後再試！",
+                    });
+                }
+            });
+        }
+
+        function toggleFavoriteUI(element) {
+            let isFavorite = $(element).hasClass("bi-heart-fill");
+
+            if (isFavorite) {
+                $(element).removeClass("bi-heart-fill text-danger").addClass("bi-heart");
+            } else {
+                $(element).removeClass("bi-heart").addClass("bi-heart-fill text-danger");
+            }
+        }
+    </script>
+}

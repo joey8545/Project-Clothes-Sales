@@ -1,0 +1,247 @@
+﻿@model Project.Models.CMemberWrap
+
+    <div class="pagetitle mt-0 pt-0">
+        <h1>個人資料</h1>
+        <nav class="mt-2">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="~/Home/Index">首頁</a></li>
+                <li class="breadcrumb-item active">個人資料</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section profile">
+        <div class="row">
+            <div class="col-xl-4">
+
+                <div class="card">
+                    <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
+                        <img src="~/Images/@Model.Mphoto" alt="Profile" class="rounded-circle" style="height:200px;width:200px;">
+                        <h2 class="mt-4">@Model.Mname</h2>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-xl-8">
+
+                <div class="card">
+                    <div class="card-body pt-3">
+                        <!-- Bordered Tabs -->
+                        <ul class="nav nav-tabs nav-tabs-bordered">
+
+                            <li class="nav-item">
+                                <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#profile-overview">個人資訊</button>
+                            </li>
+
+                            <li class="nav-item">
+                                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#profile-edit">修改資訊</button>
+                            </li>
+
+                            <li class="nav-item">
+                                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#profile-change-password">修改密碼</button>
+                            </li>
+
+                        </ul>
+                        <div class="tab-content pt-2">
+
+                            <div class="tab-pane fade show active profile-overview" id="profile-overview">
+                                <h5 class="card-title fw-bold">個人資訊</h5>
+
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-4 label ">姓名</div>
+                                    <div class="col-lg-9 col-md-8">@Model.Mname</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-4 label">性別</div>
+                                    <div class="col-lg-9 col-md-8" id="gender"></div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-4 label">Email</div>
+                                    <div class="col-lg-9 col-md-8">@Model.Memail</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-4 label">地址</div>
+                                    <div class="col-lg-9 col-md-8">@Model.Maddress</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-4 label">生日</div>
+                                    <div class="col-lg-9 col-md-8">@Model.Mbirthday</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-4 label">電話</div>
+                                    <div class="col-lg-9 col-md-8">@Model.Mphone</div>
+                                </div>
+
+                            </div>
+
+                            <div class="tab-pane fade profile-edit pt-3" id="profile-edit">
+
+                                <!-- Profile Edit Form -->
+                            <form asp-action="Profile" enctype="multipart/form-data">
+                                <input type="hidden" name="Mid" value="@Model.Mid">
+                                    <div class="row mb-3">
+                                        <label for="profileImage" class="col-md-4 col-lg-3 col-form-label ">個人照片</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            <img src="~/Images/@Model.Mphoto" alt="Profile">
+                                            <div class="pt-2">
+                                            <input type="file" name="photoPath" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                    <label for="Mname" class="col-md-4 col-lg-3 col-form-label">姓名</label>
+                                        <div class="col-md-8 col-lg-9">
+                                        <input name="Mname" type="text" class="form-control" id="Mname" value=@Model.Mname>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                    <label for="Mgender" class="col-md-4 col-lg-3 col-form-label">性別</label>
+                                        <div class="col-md-8 col-lg-9">
+                                        <select class="form-select" aria-label="Default select example" name="Mgender" id="gender1">
+                                            <option value="男性">男性</option>
+                                            <option value="女性">女性</option>
+                                        </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                    <label for="Memail" class="col-md-4 col-lg-3 col-form-label">Email</label>
+                                        <div class="col-md-8 col-lg-9">
+                                        <input name="Memail" type="text" class="form-control" id="Memail" value=@Model.Memail>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                    <label for="Maddress" class="col-md-4 col-lg-3 col-form-label">地址</label>
+                                        <div class="col-md-8 col-lg-9">
+                                        <input name="Maddress" type="text" class="form-control" id="Maddress" value=@Model.Maddress>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                    <label for="Mbirthday" class="col-md-4 col-lg-3 col-form-label">生日</label>
+                                        <div class="col-md-8 col-lg-9">
+                                        <input name="Mbirthday" type="date" class="form-control" id="Mbirthday" value=@Model.Mbirthday>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                    <label for="Mphone" class="col-md-4 col-lg-3 col-form-label">電話</label>
+                                        <div class="col-md-8 col-lg-9">
+                                        <input name="Mphone" type="text" class="form-control" id="Mphone" value=@Model.Mphone>
+                                        </div>
+                                    </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary" onclick="confirmSubmit(event)">儲存修改</button>
+                                    </div>
+                                </form><!-- End Profile Edit Form -->
+
+                            </div>
+
+                        <div class="tab-pane fade profile-edit pt-3" id="profile-change-password">
+                            <form asp-action="ChangePassword" id="confirmPassword">
+
+                                <div class="row mb-3">
+                                        <label for="currentPassword" class="col-md-4 col-lg-3 col-form-label">目前密碼</label>
+                                        <div class="col-md-8 col-lg-9">
+                                        <input name="currentPassword" type="password" class="form-control" id="currentPassword" required>
+                                        <span id="currentPasswordMatchError" class="text-danger" style="display: none;">密碼錯誤</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                    <label for="Mpassword" class="col-md-4 col-lg-3 col-form-label">新密碼</label>
+                                        <div class="col-md-8 col-lg-9">
+                                        <input name="Mpassword" type="password" class="form-control" id="Mpassword" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label for="renewPassword" class="col-md-4 col-lg-3 col-form-label">重新輸入新密碼</label>
+                                        <div class="col-md-8 col-lg-9">
+                                        <input name="renewPassword" type="password" class="form-control" id="renewPassword" required>
+                                            <span id="passwordMatchError" class="text-danger" style="display: none;">與新密碼不一致</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary" onclick="confirmSubmit(event)">密碼修改</button>
+                                    </div>
+                                </form>
+
+                    </div>
+
+                        </div><!-- End Bordered Tabs -->
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+@section Scripts{
+<script>
+        function confirmSubmit(event) {
+            event.preventDefault(); // 阻止表單提交
+            
+            Swal.fire({
+                title: "確定要儲存修改嗎?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "確定",
+                cancelButtonText: "取消"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    event.target.closest("form").submit(); // 手動提交表單
+                }
+            });
+        }
+
+        $("#confirmPassword").on("submit", (e) => {
+
+            $("#currentPasswordMatchError").css("display", "none");
+            $("#passwordMatchError").css("display", "none");
+
+                if ($("#currentPassword").val() != @Model.Mpassword) {
+                    $("#currentPasswordMatchError").css("display", "block");
+                    e.preventDefault();
+                    return false;
+                }else{}
+                
+                if ($("#Mpassword").val() != $("#renewPassword").val()) {
+                    $("#passwordMatchError").css("display", "block");
+                    e.preventDefault();
+                    return false;
+                } 
+
+                
+                return true;
+                
+        })
+
+    $(function () {
+
+         let gender = @Model.Mgender;
+
+            if (gender == 0) {
+            $("#gender").html("男性");
+            $("#gender1").val("男性");
+        } else {
+            $("#gender").html("女性");
+            $("#gender1").val("女性");
+        };
+    })
+
+</script>
+}

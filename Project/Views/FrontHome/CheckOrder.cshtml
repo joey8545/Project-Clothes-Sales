@@ -1,0 +1,321 @@
+﻿@{
+    Layout = "~/Views/Shared/FrontMember_Layoutcshtml.cshtml";
+}
+
+<div id="app">
+    <div class="p-6">
+        <h3 class="text-xl mb-2">您的訂單紀錄共有 {{ totalOrders }} 筆：</h3>
+        <div class="bg-gray-100 custom-padding border border-gray-300 mb-3">
+            <h4 class="text-lg font-bold underline-title  mb-2">訂單查詢</h4>
+            <div class="container">
+                <div class="mb-2 items-start text-center">
+                    <span class="mb-2 font-semibold font-bold">查詢條件：</span>
+                    <label class="mr-8">
+                        <input type="radio" v-model="searchCondition" value="oneMonth" />一個月內訂單
+                    </label>
+                    <label class="mr-8">
+                        <input type="radio" v-model="searchCondition" value="notShipped" />待出貨訂單
+                    </label>
+                    <label class="mr-8">
+                        <input type="radio" v-model="searchCondition" value="returned" />退換貨訂單
+                    </label>
+                    <label class="mr-8">
+                        <input type="radio" v-model="searchCondition" value="sixMonths" />六個月內訂單
+                    </label>
+                </div>
+
+                <div class="mb-2 items-start text-center">
+                    <span class="mb-2 font-semibold">訂單編號：</span>
+                    <input type="text" v-model="orderNumber" placeholder="請輸入訂單編號"
+                           class="border p-1 rounded custom-input">
+                </div>
+            </div>
+
+            <div class="underline-title"></div>
+
+            <div class="flex justify-center">
+                <button @@click="searchOrders" class="bg-yellow-500 text-gray rounded">
+                    查詢
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full">
+        <table class="w-full border-collapse border border-gray-300 text-sm">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border p-1">訂單編號</th>
+                    <th class="border p-1">訂購時間</th>
+                    <th class="border p-1">金額</th>
+                    <th class="border p-1">折價券</th>
+                    <th class="border p-1">運送地址</th>
+                    <th class="border p-1">運費</th>
+                    <th class="border p-1">應付金額</th>
+                    <th class="border p-1">訂單狀態</th>
+                    <th class="border p-1">付款狀態</th>
+                    <th class="border p-1">取消訂單</th>
+                    <th class="border p-1">意見反應</th>
+                    <th class="border p-1">退貨申請</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="order in paginatedOrders" :key="order.oid" class="text-center">
+                    <td class="border p-1 text-blue-500 cursor-pointer">
+                        <a :href="`CheckOrderDetail?oid=${order.oid}`" class="hover:underline">
+                            {{ order.oid }}
+                        </a>
+                    </td>
+                    <td class="border p-1">{{ order.odate }}</td>
+                    <td class="border p-1">{{ parseInt(order.oPrice) }}元</td>
+                    <td class="border p-1">{{ order.oDiscountedprice }}元</td>
+                    <td class="border p-1">{{ order.oAddress }}</td>
+                    <td class="border p-1">60元</td>
+                    <td class="border p-1">{{ order.oTotalPrice }}元</td>
+                    <td class="border p-1">{{ order.oStatus }}</td>
+                    <td class="border p-1">{{ order.oPayment ? '已付款' : '未付款' }}</td>
+                    <td class="border p-1">
+                        <span v-if="order.oCancelStatus === '已取消'" class="feedback-links">已取消</span>
+                        <span v-if="order.oCancelStatus === '已出貨無法取消'" class="feedback-links">已出貨無法取消</span>
+                        <span v-if="order.oCancelStatus === '申請中'" class="feedback-links text-gray-50">申請中</span>
+                        <a v-if="order.oStatus === '待出貨' && order.oCancelStatus !== '申請中' && order.oCancelStatus !== '已取消' && order.oCancelStatus !== '已出貨無法取消' "
+                           :href="`CancelOrder?oid=${order.oid}`"
+                           class="feedback-link">取消</a>
+                        <span v-else-if="order.oCancelStatus !== '申請中' && order.oCancelStatus !== '已出貨無法取消' &&　order.oCancelStatus !== '已取消'" class="feedback-link text-red-500">----</span>
+                    </td>
+                    <td class="border p-1">
+                        <a :href="`/FrontHome/Advice/${order.oid}`" class="feedback-link">問題反應</a>
+                    </td>
+                    <td class="border p-1">
+                        <template v-if="order.oStatus === '已完成'">
+                            <a v-if="order.oReturnStatus === '申請逾時'" class="feedback-links text-red-500">
+                                {{ order.oReturnStatus }}
+                            </a>
+                            <a v-else-if="order.oReturnNo && order.oReturnStatus !== '申請逾時'" class="feedback-links text-red-500">
+                                於7天內辦理<br>退貨編號:<br>{{ order.oReturnNo }}
+                            </a>
+                            <a v-else :href="`ReturnPurchase?oid=${order.oid}`" class="feedback-link text-red-500">
+                                退貨
+                            </a>
+                        </template>
+                        <a v-else class="feedback-link text-red-500">
+                            ----
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="flex justify-center mt-4">
+        <button @@click="prevPage" :disabled="currentPage === 1" class="mx-2 px-3 py-1 bg-gray-300 rounded text-sm">上一頁</button>
+        <span class="px-3 py-1 text-sm">{{ currentPage }} / {{ totalPages }}</span>
+        <button @@click="nextPage" :disabled="currentPage === totalPages" class="mx-2 px-3 py-1 bg-gray-300 rounded text-sm">下一頁</button>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script type="text/javascript"
+            src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+        var vueApp = {
+            data() {
+                return {
+                    searchCondition: '',
+                    orderNumber: '',
+                    orders: [],
+                    orderItems: [],
+                    totalOrders: 0,
+                    totalPages: 1,
+                    currentPage: 1,
+                    itemsPerPage: 10,
+                    baseAddress: "https://localhost:7279",
+                    isLoading: true
+                };
+            },
+            computed: {
+                totalOrders() {
+                    return this.orders.length;
+                },
+                totalPages() {
+                    return Math.ceil(this.orders.length / this.itemsPerPage);
+                },
+                paginatedOrders() {
+                    const start = (this.currentPage - 1) * this.itemsPerPage;
+                    const end = start + this.itemsPerPage;
+                    return this.orders.slice(start, end);
+                }
+            }, 
+            methods: {
+                async getOrderItems() {
+                    this.isLoading = true;
+                    setTimeout(async () => {
+                        try {
+                            let response = await axios.post(`${this.baseAddress}/Ajax/GetOrderItems`, {});
+                            if (response.data) {
+                                this.orders = response.data;
+                                this.totalOrders = this.orders.length;
+                                this.totalPages = Math.ceil(this.totalOrders / this.itemsPerPage);
+                                this.currentPage = 1; 
+                            } else {
+                                swal("錯誤", "請先登入會員", "error");
+                            }
+                        } catch (err) {
+                            console.error("錯誤:", err.message);
+                        }
+                        this.isLoading = false;
+                    }, 100);
+                },
+                async searchOrders() {
+                    this.isLoading = true;
+                    setTimeout(async () => {
+                        try {
+                            let searchParams = {
+                                Condition: this.searchCondition,
+                                OrderNumber: this.orderNumber
+                            };
+                            let response = await axios.post(`${this.baseAddress}/Ajax/SearchOrders`, searchParams);
+                            this.orders = response.data.orders;
+                            this.totalOrders = this.orders.length;
+                            this.totalPages = Math.ceil(this.totalOrders / this.itemsPerPage);
+                            this.currentPage = 1; 
+                        } catch (error) {
+                            console.error("查詢訂單錯誤:", error);
+                            this.orders = [];  
+                        }
+                        this.isLoading = false;
+                    }, 100);
+                },
+                prevPage() {
+                    if (this.currentPage > 1) {
+                        this.currentPage--;
+                    }
+                },
+                nextPage() {
+                    if (this.currentPage < this.totalPages) {
+                        this.currentPage++;
+                    }
+                },
+                cancelOrder(orderId) {
+                    const orderIndex = this.orders.findIndex(order => order.id === orderId);
+                    if (orderIndex !== -1 && this.orders[orderIndex].status === "未出貨") {
+                        this.orders[orderIndex].status = "已取消";
+                        swal("成功", `訂單 ${orderId} 已取消`, "success");
+                    } else {
+                        swal("錯誤", "該訂單無法取消", "error");
+                    }
+                }
+            },
+            mounted() {
+                this.getOrderItems(); 
+            }
+        };
+        var app = Vue.createApp(vueApp).mount("#app");
+    </script>
+}
+
+@section Styles {
+    <link href="https://fonts.googleapis.com/css2?family=Cactus+Classical+Serif&family=LXGW+WenKai+TC&family=Liu+Jian+Mao+Cao&family=Long+Cang&family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+    <style scoped>
+        table th, table td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        .flex {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feedback-link {
+            color: #6366f1;
+            transition: color 0.3s ease;
+        }
+
+            .feedback-link:hover {
+                color: #9b1d2f;
+            }
+
+        .feedback-links {
+            color: #C55A4C;
+        }
+
+        .items-start label {
+            margin-right: 10px;
+        }
+
+        .underline-title {
+            border-bottom: 1.4px dashed #ccc;
+            padding-bottom: 2px;
+            margin-bottom: 10px;
+        }
+
+        .custom-padding {
+            padding-top: 10px;
+            padding-right: 15px;
+            padding-bottom: 10px;
+            padding-left: 15px;
+        }
+
+        .custom-input {
+            width: 448px;
+            max-width: 100%;
+        }
+
+        table th:nth-child(1), table td:nth-child(1) {
+            width: 120px;
+        }
+
+        table th:nth-child(2), table td:nth-child(2) {
+            width: 100px;
+        }
+
+        table th:nth-child(3), table td:nth-child(3) {
+            width: 100px;
+        }
+
+        table th:nth-child(4), table td:nth-child(4) {
+            width: 90px;
+        }
+
+        table th:nth-child(5), table td:nth-child(5) {
+            width: 220px;
+        }
+
+        table th:nth-child(6), table td:nth-child(6) {
+            width: 80px;
+        }
+
+        table th:nth-child(7), table td:nth-child(7) {
+            width: 110px;
+        }
+
+        table th:nth-child(8), table td:nth-child(8) {
+            width: 140px;
+        }
+
+        table th:nth-child(9), table td:nth-child(9) {
+            width: 140px;
+        }
+
+        table th:nth-child(10), table td:nth-child(10) {
+            width: 140px;
+        }
+
+        table th:nth-child(11), table td:nth-child(11) {
+            width: 80px;
+        }
+
+        table th:nth-child(12), table td:nth-child(12) {
+            width: 80px;
+        }
+    </style>
+}

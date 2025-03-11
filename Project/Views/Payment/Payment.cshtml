@@ -1,0 +1,266 @@
+﻿@section styles {
+	<style>
+		.btn-send {
+			border: 1px solid gray;
+			border-radius: 15px;
+		}
+
+			.btn-send:hover {
+				border: 1px solid gray;
+				background: #D1E9E9;
+			}
+	</style>
+}
+
+<div id="app">
+	<div class="d-flex">
+		<div>
+			<input type="radio" class="btn-check" name="options" id="option1" autocomplete="off">
+			<label class="btn btn-label btn-secondary" id="weekBtn">這週</label>
+
+			<input type="radio" class="btn-check" name="options" id="option2" autocomplete="off">
+			<label class="btn btn-label" id="monthBtn">這個月</label>
+
+			<input type="radio" class="btn-check" name="options" id="option3" autocomplete="off">
+			<label class="btn btn-label" id="yearBtn">今年</label>
+		</div>
+		<div class="ms-auto">
+			<form class="d-flex ">
+				<input type="date" class="form-control" id="dateStart"/>
+				<input type="date" class="form-control ms-3" id="dateEnd" />
+				<button type="button" class="btn btn-send ms-2" style="width:120px" id="dateSearch">查詢</button>
+			</form>
+
+		</div>
+		<h4 id="totalamount" class="ms-auto d-flex align-items-center m-0" style="color:#AE0000"></h4>
+	</div>
+	<hr />
+	<!-- Area Chart -->
+	<section class="section">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title fw-bold">進帳</h5>
+						<div id="areaChart"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- End Area Chart -->
+</div>
+
+
+@section Scripts {
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js"></script>
+
+	<script>
+		let baseAddress = "https://localhost:7279";
+		let Year = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+		let chart;
+		let total=0;
+		function filterData(date) {
+			$(".btn-label").removeClass("btn-secondary");
+			$(`#${date}Btn`).addClass("btn-secondary");
+
+			if (date == "week") {
+				axios.get(`${baseAddress}/Payment/GetWeek`).then(response => {
+					total = 0;
+					response.data.price.forEach(amount => {
+						total += amount; 
+					});
+
+					$("#totalamount").text(`銷售額：$${total.toLocaleString("zh-TW")}`);
+					if (chart) chart.destroy();
+					chart = new ApexCharts(document.querySelector("#areaChart"), {
+						series: [{
+							name: "金額",
+							data: response.data.price,
+						}],
+						chart: {
+							type: 'area',
+							height: 350,
+							zoom: {
+								enabled: false
+							}
+						},
+						dataLabels: {
+							enabled: false
+						},
+						stroke: {
+							curve: 'straight'
+						},
+						xaxis: {
+							categories: response.data.date,
+						},
+						yaxis: {
+							opposite: false
+						},
+						legend: {
+							horizontalAlign: 'left'
+						}
+					});
+					chart.render();
+				}).catch(err => {
+					alert(err.message);
+				})
+			} else if (date == "month") {
+				axios.get(`${baseAddress}/Payment/GetMonth`).then(response => {
+					total = 0;
+					response.data.price.forEach(amount => {
+						total += amount;
+					});
+
+					$("#totalamount").text(`銷售額：$${total.toLocaleString("zh-TW")}`);
+					if (chart) chart.destroy();
+					chart = new ApexCharts(document.querySelector("#areaChart"), {
+						series: [{
+							name: "金額",
+							data: response.data.price,
+						}],
+						chart: {
+							type: 'area',
+							height: 350,
+							zoom: {
+								enabled: false
+							}
+						},
+						dataLabels: {
+							enabled: false
+						},
+						stroke: {
+							curve: 'straight'
+						},
+						xaxis: {
+							categories: response.data.date,
+						},
+						yaxis: {
+							opposite: false
+						},
+						legend: {
+							horizontalAlign: 'left'
+						}
+					});
+					chart.render();
+				}).catch(err => {
+					alert(err.message);
+				})
+			} else { 
+					axios.get(`${baseAddress}/Payment/GetYear`).then(response => {
+					total = 0;
+					response.data.price.forEach(amount => {
+						total += amount;
+					});
+
+					$("#totalamount").text(`銷售額：$${total.toLocaleString("zh-TW")}`);
+						if (chart) chart.destroy();
+						chart = new ApexCharts(document.querySelector("#areaChart"), {
+							series: [{
+								name: "金額",
+								data: response.data.price,
+							}],
+							chart: {
+								type: 'area',
+								height: 350,
+								zoom: {
+									enabled: false
+								}
+							},
+							dataLabels: {
+								enabled: false
+							},
+							stroke: {
+								curve: 'straight'
+							},
+							xaxis: {
+							categories: Year,
+							},
+							yaxis: {
+								opposite: false
+							},
+							legend: {
+								horizontalAlign: 'left'
+							}
+						});
+						chart.render();
+				}).catch(err => {
+					alert(err.message);
+				})
+			}
+		}
+
+		function dateSearch() {
+			let dateStart = $("#dateStart").val();
+			let dateEnd = $("#dateEnd").val();
+			if (!dateStart || !dateEnd) {
+				alert("請選擇起始日期及結束日期");
+				return;
+			} else {
+				axios.get(`${baseAddress}/Payment/DateSearch`, {
+					params: {
+						start: dateStart,
+						end: dateEnd
+					}
+				}).then(response => {
+					$(".btn-label").removeClass("btn-secondary");
+
+					total = 0;
+					response.data.price.forEach(amount => {
+						total += amount;
+					});
+					$("#totalamount").text(`銷售額：$${total.toLocaleString("zh-TW")}`);
+
+					if (chart) chart.destroy();
+					chart = new ApexCharts(document.querySelector("#areaChart"), {
+						series: [{
+							name: "金額",
+							data: response.data.price,
+						}],
+						chart: {
+							type: 'area',
+							height: 350,
+							zoom: {
+								enabled: false
+							}
+						},
+						dataLabels: {
+							enabled: false
+						},
+						stroke: {
+							curve: 'straight'
+						},
+						xaxis: {
+							categories: response.data.date,
+						},
+						yaxis: {
+							opposite: false
+						},
+						legend: {
+							horizontalAlign: 'left'
+						}
+					});
+					chart.render();
+				}).catch(err => { 
+					alert(err.message);
+				})
+			}
+		}
+
+		document.getElementById("weekBtn").addEventListener("click", function () {
+			filterData("week");
+		});
+		document.getElementById("monthBtn").addEventListener("click", function () {
+			filterData("month");
+		});
+		document.getElementById("yearBtn").addEventListener("click", function () {
+			filterData("year");
+		});
+		document.getElementById("dateSearch").addEventListener("click", function () {
+			dateSearch();
+		});
+		$(function () {
+			filterData("week");
+		})
+	</script>
+}

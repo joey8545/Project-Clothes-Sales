@@ -1,0 +1,162 @@
+﻿@{
+    Layout = "~/Views/Shared/Front_Layout.cshtml";
+    ViewBag.IsFullWidth = true;
+}
+<div class="container">
+    <div class="row">
+        <div class="col-12 diybox">
+            <img src="~/Images/clothes.jpg" alt="" class="w-100" />
+            <div class="diy">客製化衣服</div>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="product-title">產品一覽</div>
+        </div>
+    </div>
+    <!-- 產品列 -->
+    <div class="row mt-5 d-flex justify-content-between">
+        <div class="col-6 col-md-2">
+            <div class="product-item">
+                <a href="~/FrontHome/ChangeClothes"
+                   class="text-decoration-none text-dark">
+                    <img src="~/Images/shortTshirt.png"
+                         alt=""
+                         class="w-75"
+                         id="tshirt" />
+                </a>
+                <div class="product-name">t恤</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="product-item">
+                <a href="~/FrontHome/ChangeClothes"
+                   class="text-decoration-none text-dark">
+                    <img src="~/Images/shortPolo.png"
+                         alt=""
+                         class="w-75"
+                         id="shortPolo" />
+                </a>
+                <div class="product-name">短袖Polo衫</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="product-item">
+                <a href="~/FrontHome/ChangeClothes"
+                   class="text-decoration-none text-dark">
+                    <img src="~/Images/longTshirt.png"
+                         alt=""
+                         class="w-75"
+                         id="longTshirt" />
+                </a>
+                <div class="product-name">長袖T恤</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="product-item">
+                <a href="~/FrontHome/ChangeClothes"
+                   class="text-decoration-none text-dark">
+                    <img src="~/Images/sweatshirt.png"
+                         alt=""
+                         class="w-75"
+                         id="sweatshirt" />
+                </a>
+                <div class="product-name">連帽上衣(帽T)</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="product-item">
+                <a href="~/FrontHome/ChangeClothes"
+                   class="text-decoration-none text-dark">
+                    <img src="~/Images/coat.png" alt="" class="w-75" id="coat" />
+                </a>
+                <div class="product-name">外套</div>
+            </div>
+        </div>
+    </div>
+    <!-- 訂購流程 -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="product-title">客製化衣服訂購流程</div>
+            <div class="product-title2">簡單5步驟輕鬆製作屬於自己的衣服</div>
+        </div>
+        <div class="row mt-5 d-flex justify-content-between">
+            <div class="col-6 col-md-2">
+                <div>
+                    <img src="~/Images/step1.jpg" alt="" class="w-100" />
+                    <h5 class="text-center my-3 fw-bold" style="color: #888484">
+                        挑選產品
+                    </h5>
+                    <div class="my-2 text-center small fw-bold"
+                         style="color: #908e8ec8">
+                        多樣化產品、多種尺寸、顏色選擇。
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div>
+                    <img src="~/Images/step2.jpg" alt="" class="w-100" />
+                    <h5 class="text-center my-3 fw-bold" style="color: #888484">
+                        討論細節
+                    </h5>
+                    <div class="my-2 text-center small fw-bold"
+                         style="color: #908e8ec8">
+                        聯繫官方線上客服，即時問答與解決方案。
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div>
+                    <img src="~/Images/step3.jpg" alt="" class="w-100" />
+                    <h5 class="text-center my-3 fw-bold" style="color: #888484">
+                        填寫訂單
+                    </h5>
+                    <div class="my-2 text-center small fw-bold"
+                         style="color: #908e8ec8">
+                        我們提供產品示意圖，並讓您確認訂購細節。
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div>
+                    <img src="~/Images/step4.jpg" alt="" class="w-100" />
+                    <h5 class="text-center my-3 fw-bold" style="color: #888484">
+                        支付款項
+                    </h5>
+                    <div class="my-2 text-center small fw-bold"
+                         style="color: #908e8ec8">
+                        支付商品款項，並與客服人員確認款項。
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div>
+                    <img src="~/Images/step5.jpg" alt="" class="w-100" />
+                    <h5 class="text-center my-3 fw-bold" style="color: #888484">
+                        出貨
+                    </h5>
+                    <div class="my-2 text-center small fw-bold"
+                         style="color: #908e8ec8">
+                        再次確認訂單內容、工作天數並下單製作。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 商品展列 -->
+<div class="px-4">
+    <div class="product-title mt-5">一 客製化衣服 一</div>
+    <div class="product-show">
+        <div class="owl-carousel owl-theme mt-4">
+            <div class="item"><img src="~/Images/customTshirt1.jpg" alt="" /></div>
+            <div class="item"><img src="~/Images/customTshirt2.jpg" alt="" /></div>
+            <div class="item"><img src="~/Images/customTshirt3.jpg" alt="" /></div>
+            <div class="item"><img src="~/Images/customTshirt4.jpg" alt="" /></div>
+            <div class="item"><img src="~/Images/customTshirt5.jpg" alt="" /></div>
+            <div class="item"><img src="~/Images/customTshirt6.jpg" alt="" /></div>
+        </div>
+        <div class="arrow-left"><i class="bi bi-arrow-left-circle"></i></div>
+        <div class="arrow-right"><i class="bi bi-arrow-right-circle"></i></div>
+    </div>
+</div>

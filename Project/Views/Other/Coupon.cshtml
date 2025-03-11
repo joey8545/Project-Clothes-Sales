@@ -1,0 +1,362 @@
+﻿@section styles{
+    <style>
+        .btn-send {
+            border: 1px solid gray;
+            border-radius: 15px;
+        }
+
+        .btn-send:hover {
+                border: 1px solid gray;
+                background: #D1E9E9;
+        }
+    </style>
+}
+<div id="app">
+    <div class="d-flex">
+        <h3 class="fw-bold">
+            優惠券
+        </h3>
+        <div class="ms-auto me-auto">
+            <input type="radio" class="btn-check" name="options" id="option1" autocomplete="off" checked>
+            <label class="btn" v-bind:class="{ 'btn-secondary': ischecked === '全部' }" for="option1" v-on:click="filter('全部')">全部</label>
+
+            <input type="radio" class="btn-check" name="options" id="option2" autocomplete="off">
+            <label class="btn " v-bind:class="{ 'btn-secondary': ischecked === '未過期' }" for="option2" v-on:click="filter('未過期')">未過期</label>
+
+            <input type="radio" class="btn-check" name="options" id="option3" autocomplete="off">
+            <label class="btn " v-bind:class="{ 'btn-secondary': ischecked === '已過期' }" for="option3" v-on:click="filter('已過期')">已過期</label>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-send" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                新增優惠券
+            </button>
+        </div>
+    </div>
+    <!-- Modal Add -->
+    <div  class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="exampleModalLabel">新增優惠券</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">優惠券名稱</label>
+                    <input class="form-control" type="text" v-model="CouponName" required />
+                    <label class="form-label mt-3">優惠券折扣(金額)</label>
+                    <input class="form-control" type="number" v-model="CouponDiscount" min="0" required />
+                    <label class="form-label mt-3">優惠券折扣(折數)</label>
+                    <input class="form-control" type="number" v-model="CouponPercentage" min="0" max="1" required />
+                    <label class="form-label mt-3">開始時間</label>
+                    <input class="form-control" type="date" v-model="DateStart" required />
+                    <label class="form-label mt-3">結束時間</label>
+                    <input class="form-control" type="date" v-model="DateEnd" :min="End" required />
+                    <label class="form-label mt-3">優惠碼</label>
+                    <input class="form-control" type="text" v-model="PassWord" required/>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" v-on:click="addCoupon">新增</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="table-responsive col-12">
+        <table class="table align-middle table-bordered">
+            <thead>
+                <tr class="text-center">
+                    <th>
+                        折價券面額
+                    </th>
+                    <th>
+                        折價券說明
+                    </th>
+                    <th>
+                        修改
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="item in Coupon">
+                    <td class="text-center">{{item.couponDiscount > 0 ? item.couponDiscount+"元" : item.couponPercentage+"折"}}</td>
+                    <td style="letter-spacing:1px">
+                        <span class="fw-bold">{{item.couponName}}</span><br />
+                        優惠券編號：{{item.id}}<br />
+                        有效開始日：{{item.dateStart.split("T")[0]}}<br />
+                        <span style="color:indianred">有效結束日：{{item.dateEnd.split("T")[0]}}</span><br />
+                        優惠碼：{{item.password}}<br />
+                    </td>
+                    <td class="text-center" style="width:90px">
+                        <div class="d-flex flex-column">
+                            <button class="btn btn-secondary mb-3" v-on:click="openEdit(item.id)" data-bs-toggle="modal" data-bs-target="#exampleModal0">編輯</button>
+                            <button class="btn btn-danger" v-on:click="Delete(item.id)">刪除</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- Modal Edit -->
+        <div class="modal fade" id="exampleModal0" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold" id="exampleModalLabel">編輯優惠券</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" >
+                        <label class="form-label">優惠券名稱</label>
+                        <input class="form-control" type="text" v-model="CouponNameEdit" required />
+                        <label class="form-label mt-3">優惠券折扣(金額)</label>
+                        <input class="form-control" type="number" v-model="CouponDiscountEdit" min="0" required />
+                        <label class="form-label mt-3">優惠券折扣(折數)</label>
+                        <input class="form-control" type="number" v-model="CouponPercentageEdit" min="0" max="1" required />
+                        <label class="form-label mt-3">開始時間</label>
+                        <input class="form-control" type="date" v-model="DateStartEdit" required />
+                        <label class="form-label mt-3">結束時間</label>
+                        <input class="form-control" type="date" v-model="DateEndEdit" :min="End" required />
+                        <label class="form-label mt-3">優惠碼</label>
+                        <input class="form-control" type="text" v-model="PassWordEdit" required />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" v-on:click="saveEdit">儲存</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        var vueApp = {
+            data() {
+                return {
+                    baseAddress: "https://localhost:7279",
+                    allCoupons:[],
+                    Coupon:[],
+                    ischecked:"全部",
+                    CouponName: "會員獨享$1000折價券",
+                    CouponDiscount:0,
+                    CouponPercentage:0,
+                    DateStart:"",
+                    DateEnd:"",
+                    PassWord:"",
+                    End:"",
+                    CouponId:"",
+                    CouponNameEdit:"",
+                    CouponDiscountEdit:"",
+                    CouponPercentageEdit:"",
+                    DateStartEdit:"",
+                    DateEndEdit:"",
+                    PassWordEdit: "",
+                    editId:null,
+                }
+            },
+            methods: {
+                GetAllCoupon: function () {
+                    let _this = this;
+                    axios.get(`${_this.baseAddress}/Ajax/GetAllCoupon`).then(response => {
+                        _this.allCoupons = response.data;
+                        _this.Coupon = [..._this.allCoupons];
+                        _this.ischecked = "全部";
+                    }).catch(err => {
+                        // alert(err.message);
+                    });
+                },
+                filter: function (filtertype) {
+                    let currentDate = new Date();
+                    if (filtertype == '未過期') {
+                        this.Coupon = this.allCoupons.filter(item => new Date(item.dateEnd) > currentDate);
+                        this.ischecked = "未過期";
+                    } else if (filtertype == '已過期') {
+                        this.Coupon = this.allCoupons.filter(item => new Date(item.dateEnd) <= currentDate);
+                        this.ischecked = "已過期";
+                    } else {
+                        this.Coupon = [...this.allCoupons];
+                        this.ischecked = "全部";
+                    }
+                },
+                Delete: function (id) {
+                    console.log("Deleting coupon with id:", id);
+                    let request = { Id: id };
+                    let _this = this;
+                    Swal.fire({
+                        title: "確定要刪除該筆資料嗎?",
+                        text: "刪除後將無法恢復!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "確定刪除",
+                        cancelButtonText: "取消"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            axios.delete(`${_this.baseAddress}/Ajax/Delete/${id}`)
+                                .then(response => {
+                                    Swal.fire({
+                                        title: "刪除成功",
+                                        text: response.data,
+                                        icon: "success"
+                                    }).then(() => {
+                                        _this.GetAllCoupon(); // 重新載入數據
+                                    });
+                                })
+                                .catch(err => {
+                                   
+                                });
+                        }
+                    })
+                },
+                saveEdit: function () { 
+                    let _this = this;
+                    let id = _this.editId;
+                    let request = {
+                        CouponName:_this.CouponNameEdit,
+                        CouponDiscount:_this.CouponDiscountEdit,
+                        CouponPercentage:_this.CouponPercentageEdit,
+                        DateStart:_this.DateStartEdit,
+                        DateEnd:_this.DateEndEdit,
+                        CouponPassWord:_this.PassWordEdit
+                    }
+                    axios.put(`${_this.baseAddress}/Ajax/saveEdit/${id}`,request).then(response => {
+                        if (response.data.success) {
+                            Swal.fire({
+                                title: response.data.message,
+                                icon: "success"
+                            }).then(() => {
+                                _this.GetAllCoupon();
+                            })
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: response.data.message,
+                            }).then(() => {
+                                window.location.href = response.data.redirectUrl;
+                            })
+                        }
+                    }).catch(err => { 
+                        // alert(err.message);
+                    });
+                },
+                openEdit: function (id) { 
+                    let _this=this;
+                    _this.editId = id;
+                    axios.get(`${_this.baseAddress}/Ajax/openEdit/${id}`).then(response => {
+                        let dateStart = new Date(response.data.dateStart);
+                        let dateEnd = new Date(response.data.dateEnd);
+
+                        // 將日期格式轉換為 YYYY-MM-DD
+                        let formattedDateStart = dateStart.getFullYear() + '-' +
+                            (dateStart.getMonth() + 1).toString().padStart(2, '0') + '-' +
+                            dateStart.getDate().toString().padStart(2, '0');
+
+                        let formattedDateEnd = dateEnd.getFullYear() + '-' +
+                            (dateEnd.getMonth() + 1).toString().padStart(2, '0') + '-' +
+                            dateEnd.getDate().toString().padStart(2, '0');
+                        _this.CouponId = id;
+                        _this.CouponNameEdit = response.data.couponName;
+                        _this.CouponDiscountEdit = response.data.couponDiscount;
+                        _this.CouponPercentageEdit=response.data.couponPercentage;
+                        _this.DateStartEdit = formattedDateStart;
+                        _this.DateEndEdit = formattedDateEnd;
+                        _this.PassWordEdit = response.data.passWord;
+                    }).catch(err => { 
+                        // alert(err.message);
+                    })
+                },
+                formatDate: function (date) {
+                    let year = date.getFullYear();
+                    let month = (date.getMonth() + 1).toString().padStart(2, '0'); // 讓月始終是兩位數
+                    let day = date.getDate().toString().padStart(2, '0'); // 讓日始終是兩位數
+                    return `${year}-${month}-${day}`;
+                },
+                addCoupon: function () {
+                    let _this = this;
+                    let request = {
+                        CouponName: _this.CouponName,
+                        CouponDiscount: _this.CouponDiscount,
+                        CouponPercentage: _this.CouponPercentage,
+                        DateStart: _this.DateStart,
+                        DateEnd: _this.DateEnd,
+                        CouponPassWord: _this.PassWord
+                    }
+                    if (_this.CouponPercentage == 0 && _this.CouponDiscount == 0) {
+                        Swal.fire({
+                            title: "請填寫折扣金額或折數之一",
+                            icon: "warning"
+                        });
+                        return;
+                    }
+                    if (_this.CouponPercentage != 0 && _this.CouponDiscount != 0) {
+                        Swal.fire({
+                            title: "請填寫折扣金額或折數之一",
+                            icon: "warning"
+                        });
+                        return;
+                    }
+                    if (_this.DateStart >= _this.DateEnd) {
+                        Swal.fire({
+                            title: "開始時間不得超過結束時間",
+                            icon: "warning"
+                        });
+                        return;
+                    }
+                    if (_this.PassWord == "") {
+                        Swal.fire({
+                            title: "請填寫優惠碼",
+                            icon: "warning"
+                        });
+                        return;
+                    }
+                    Swal.fire({
+                        title: '確定要新增此優惠券?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: '確定',
+                        cancelButtonText: '取消'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            axios.post(`${_this.baseAddress}/Ajax/addCoupon`, request)
+                                .then(response => {
+                                    Swal.fire({
+                                        title: response.data,
+                                        icon: 'success'
+                                    }).then(() => {
+                                        _this.GetAllCoupon();
+                                        _this.CouponName = "會員獨享$1000折價券";
+                                        _this.CouponDiscount = 0;
+                                        _this.CouponPercentage = 0;
+                                        _this.DateStart = new Date().toISOString().split("T")[0];
+                                        _this.PassWord = "";
+                                    });
+                                })
+                                .catch(err => {
+                                    Swal.fire({
+                                        title: "發生錯誤",
+                                        text: err.message,
+                                        icon: "error"
+                                    });
+                                });
+                        }
+                    });
+                }
+
+            },
+            mounted() {
+                this.GetAllCoupon();
+                // 計算明天的日期
+                let date = new Date();
+                date.setDate(date.getDate() + 1); // 加一天，取得明天的日期
+                this.End = date.toISOString().split("T")[0]; // 格式化為 yyyy-mm-dd
+
+                // 設定 DateStart 為今天的日期
+                this.DateStart = new Date().toISOString().split("T")[0]; // 格式化為 yyyy-mm-dd
+            }
+        }
+        var App = Vue.createApp(vueApp).mount("#app");
+    </script>
+}
+

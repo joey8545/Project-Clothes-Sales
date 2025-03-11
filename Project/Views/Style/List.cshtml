@@ -1,0 +1,56 @@
+﻿@model List<Project.ViewModel.StyleViewModel>
+
+<div class="container">
+    <h4>穿搭列表</h4>
+    <a asp-action="Create">新增商品</a>
+    <div class="row">
+        <div class="col-md-6">
+            <table class="table table align-middle">
+                <thead>
+                    <tr>
+                        <th class="text-center w-15">編號</th>
+                        <th class="text-center w-10">穿搭圖片</th>
+                        <th class="w-15">商品編號</th>
+                        <th class="w-15">商品</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var style in Model)
+                    {
+                        <tr>
+                            <td class="text-center">@style.Sid</td>
+                            <!-- 左側顯示穿搭圖片 -->
+                            <td class="text-center">
+                                <img src="~/images/@style.SImg" style="max-width: 100px; height: auto;" alt="穿搭圖">
+                            </td>
+                            <!-- 商品資訊變為直向排列 -->
+                            <td>
+                                <div class="d-flex flex-column text-center">
+                                    @foreach (var product in style.Products)
+                                    {
+                                        <p>@product.PID</p>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    @foreach (var product in style.Products)
+                                    {
+                                        <p>@product.PName</p>
+                                    }
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                @Html.ActionLink("修改", "Edit", new { id = style.Sid }) <hr>
+                                @Html.ActionLink("刪除", "Delete", new { id = style.Sid })
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+

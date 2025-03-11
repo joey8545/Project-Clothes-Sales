@@ -1,0 +1,110 @@
+﻿@using System.Text.Json
+@{
+	Layout = "~/Views/Shared/Front_Layout.cshtml";
+}
+@section styles{
+	<style>
+		.TopSales:hover {
+			box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+		}
+
+		.TopSales {
+			position: relative;
+			border: 1px solid #F2F2F2;
+		}
+
+		.favorite {
+			font-size: 20px;
+			position: absolute;
+			top: 8px;
+			right: 8px;
+			color: gray !important;
+		}
+
+		.bi-heart-fill {
+			color: indianred !important;
+		}
+	</style>
+}
+
+<div id="app">
+	<div class="container">
+		<div class="row">
+			<div class="col-3 mt-3 mb-5" v-for="item in favorite">
+				<div class="TopSales">
+					<a v-bind:href="'/Product/Productdetail/' + item.pid" class="text-decoration-none">
+						<i v-bind:class="item.isFavorite? 'bi bi-heart-fill':'bi bi-heart'" class="favorite" v-on:click.prevent="Favorite(item)"></i>
+						<img v-bind:src="'/Images/'+ item.pphoto" class="w-100" />
+						<div class="mt-2 fw-bold ps-2" style="color:dimgray">{{item.pname}}</div>
+						<div class="fw-bold mt-1 ps-2 pb-2" style="color:black">NT$ {{item.pprice}}</div>
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+@section Scripts{
+	<script type="text/javascript"
+			src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+	<script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script>
+		var vueApp = {
+			data() {
+				return {
+					baseAddress: "https://localhost:7279",
+					favorite: [],
+					favoriteList: [],
+				}
+			},
+			methods: {
+				Favorite: function (item) { 
+                    let _this = this;
+                    let request = {
+                        PId: item.pid,
+                        PName: item.pname,
+                        PPhoto: item.pphoto,
+                        PPrice: item.pprice
+                    };
+                    axios.post(`${_this.baseAddress}/Ajax/PostFavorite`, request).then(response => {
+                        if (response.data === "請先登入會員") {
+                            alert(response.data);
+                            return; 
+                        }
+                        // alert(response.data);
+						_this.Refresh();
+                    }).catch(err => {
+                        // alert(err.message);
+                    });
+                },
+				GetFavoriteID: function () {
+					let _this = this;
+					axios.get(`${_this.baseAddress}/Ajax/GetFavoriteID`).then(response => {
+						_this.favoriteList = response.data;
+						_this.favorite.forEach(item => {
+							item.isFavorite = _this.favoriteList.includes(item.pid);
+						});
+					}).catch(err => {
+						// alert(err.message);
+					})
+				},
+				Refresh: function () {
+					let _this = this;
+					axios.get(`${_this.baseAddress}/Ajax/GetFavorite`).then(response => {
+						_this.favorite = response.data;
+						_this.GetFavoriteID();
+					}).catch(err => { 
+						// alert(err.message)
+					})
+				}
+			},
+			mounted: function () {
+				let _this = this;
+				_this.Refresh();
+			}
+		}
+		var app = Vue.createApp(vueApp).mount("#app");
+	</script>
+}

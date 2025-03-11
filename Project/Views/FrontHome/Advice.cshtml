@@ -1,0 +1,204 @@
+﻿@{
+    Layout = "~/Views/Shared/FrontMember_Layoutcshtml.cshtml";
+}
+@section styles{
+    <style>
+        .btn-send{
+            border:1px solid gray;
+            border-radius:15px;
+        }
+
+        .btn-send:hover {
+                background: #ECF5FF;
+        }
+    </style>
+    
+}
+<div id="app">
+    <div class="container">
+        <div class="row">
+			<div class="col-lg-7 col-12 my-3" style="background-color:#FCFCFC; border:1px solid #E0E0E0; border-radius:10px">
+                <div class=" d-flex mt-3">
+                    <div class="col-7 ms-3">
+                        <b>訂購人資訊：</b>
+                        <div class="mt-2">訂購人名稱：{{MName}}</div>
+                        <div class="mt-2">訂購人電話：{{MPhone}}</div>
+                        <div class="mt-2">E-mail：{{MEmail}}</div>
+                        <div class="mt-2">運送地址：{{OAddress}}</div>
+                    </div>
+                    <div class="col-5 ms-5">
+                        <b>訂單細節：</b>
+                        <div class="mt-2">訂單編號：{{OId}}</div>
+                        <div class="mt-2">訂單日期：{{OrderDate}}</div>
+                        <div class="mt-2">運送狀態：{{OStatus}}</div>
+                        <div class="mt-2">付款狀態：{{OPayment ? "已付款":"未付款"}}</div>
+                    </div>
+                </div>
+                <div class="col-11 mt-3 ms-3">
+                    <b>訂單內容：</b>
+                    <table class="table mt-2">
+                        <tbody>
+                            <tr>
+                                <th>商品名稱</th>
+                                <th>尺寸</th>
+                                <th>顏色</th>
+                                <th>件數</th>
+                                <th>金額</th>
+                            </tr>
+                            <tr v-for="item in products">
+                                <td>{{item.pname}}</td>
+                                <td>{{item.psize}}</td>
+                                <td>{{item.pcolor}}</td>
+                                <td>{{item.pcount}}件</td>
+                                <td>NT${{item.pprice}}</td>
+                            </tr>
+                            <tr >
+                                <td colspan="4" class="text-end"><strong style="color:darkred">商品總金額</strong></td>
+                                <td><strong style="color:darkred">NT${{ TotalPrice }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+            <div class="col-lg-5 col-12 my-3">
+                <form class="mt-2">
+                    <div class="mb-3">
+                        <label for="question" class="form-label mb-2">主要問題</label>
+                        <select class="form-control" v-model="Question">
+                            <option>訂單問題</option>
+                            <option>運送問題</option>
+                            <option>其他問題</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label mb-2">主旨</label>
+                        <input type="text" class="form-control" id="title" v-model="Title">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label  mb-2">簡述 <span style="font-size:14px; color:darkred">(150字以內)</span></label>
+                        <textarea class="form-control" style="height:150px;overflow-y: scroll; resize: none;" maxlength="150" v-model="Description"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-send" v-on:click="sendAdvice">送出</button>
+                </form>
+            </div>
+        </div>
+    </div>
+            
+</div>
+
+@section Scripts{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <script>
+        var vueApp = {
+            data() {
+                return {
+                    baseAddress: "https://localhost:7279",
+                    OId:"",
+                    OrderDate: "",
+                    Question: "訂單問題",
+                    Title:"",
+                    Description:"",
+                    MName:"",
+                    MPhone:"",
+                    MEmail: "",
+                    OStatus:"",
+                    OAddress:"",
+                    OPayment:"",
+                    TotalPrice:0,
+                    products:[],
+                }
+            },
+            methods: {
+                getDetails: function (id) { 
+                    let _this = this;
+                    axios.get(`${_this.baseAddress}/Ajax/getDetails/${id}`).then(response => {
+                        console.log(response.data)
+                        _this.OId = response.data.oId;
+                        _this.MName = response.data.oName;
+                        _this.OrderDate = response.data.odate;
+                        _this.MPhone = response.data.oPhone;
+                        _this.MEmail = response.data.oEmail;
+                        _this.OStatus = response.data.ostatus;
+                        _this.OAddress = response.data.oAddress;
+                        _this.OPayment = response.data.oPayment;
+                        _this.products = response.data.orderdetail;
+                        _this.TotalPrice = 0;
+                        _this.products.forEach(item => {
+                            _this.TotalPrice += item.pcount * item.pprice;
+                        })
+                    }).catch(err => { 
+                        // alert(err.message);
+                    });
+                },
+                sendAdvice: function () {
+                    let _this = this;
+                    let request = {
+                        OId: _this.OId,
+                        Question: _this.Question,
+                        Title: _this.Title,
+                        Description: _this.Description
+                    };
+    
+                    // 前端字段验证
+                    if (!_this.Question || !_this.Title || !_this.Description) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '請填寫所有欄位',
+                        });
+                        return;
+                    };
+
+                    // 使用 SweetAlert 替代 confirm
+                    Swal.fire({
+                        title: '確定要送出嗎?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: '確定',
+                        cancelButtonText: '取消'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // 用户点击确认
+                            axios.post(`${_this.baseAddress}/Ajax/PostAdvice`, request).then(response => {
+                                if (response.data.success) {
+                                    Swal.fire({
+                                        title: "已送出",
+                                        icon: "success"
+                                    }).then(() => {
+                                        window.location.href = response.data.redirectUrl;
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: response.data.message,
+                                    }).then(() => {
+                                        window.location.href = response.data.redirectUrl;
+                                    });
+                                }
+                            }).catch(err => {
+                                // alert(err.message); 
+                                
+                            });
+                        } else {
+                            return ;
+                        }
+                    });
+                },
+            },
+            mounted() {
+                // 解析路徑，取得 id
+
+                const pathParts = window.location.pathname.split('/');
+                const orderId = pathParts[pathParts.length - 1];  // 最後一部分即為 id
+                if (orderId) {
+                    this.getDetails(orderId);  // 取得 id 並調用 getDetails 方法
+                } else {
+                    alert("無效的訂單 ID");
+                }
+            }
+        };
+        var app = Vue.createApp(vueApp).mount("#app");
+    </script>
+}

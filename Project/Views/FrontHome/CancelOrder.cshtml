@@ -1,0 +1,404 @@
+﻿@{
+    Layout = "~/Views/Shared/FrontMember_Layoutcshtml.cshtml";
+}
+
+<div id="app" class="p-6">
+    <h3 class="text-xl font-bold mb-4">訂單內容</h3>
+    <div class="table-container">
+        <div v-for="item in orderItems" :key="item.id" class="product-item"> 
+            <div class="flex flex-col items-center product-images">
+                <div :style="{ display: item.PId === 0 ? 'block' : 'none' }">
+                    <img :src="item.Photo0" class="w-20 h-20 object-cover border border-gray-300">
+                </div>
+                <div :style="{ display: item.PId === 0 ? 'block' : 'none' }">
+                    <img :src="item.Photo1" class="w-20 h-20 object-cover border border-gray-300 mt-2">
+                </div>
+                <img :style="{ display: item.PId !== 0 ? 'block' : 'none' }" :src="`${baseAddress}/images/${item.Photo0}`" alt="商品圖1" class="w-20 h-20 object-cover border border-gray-300">
+            </div>
+             
+            <div class="product-info">
+                <div class="product-field product-name">{{ item.PName }}</div>
+                <div class="product-field">尺寸：{{ item.PSize }}</div>
+                <div class="product-field">顏色：{{ item.PColor }}</div>
+                <div class="product-field">數量：{{ item.PCount }}</div>
+                <div class="product-field product-price">NT$ {{ item.PPrice }}</div>
+            </div>
+        </div>
+
+        <div v-for="order in orders" :key="order.Oid" class="order-summary">
+            <p>金額：NT$ {{ order.OPrice }}</p>
+            <p>折扣價：NT$ {{ order.ODiscountedprice }}</p>
+            <p class="total-price">應付金額：NT$ {{ order.OTotalPrice }}</p>
+        </div>
+         
+        <div class="cancel-order">
+            <h3 class="text-lg font-bold mb-2">取消訂單</h3>
+            <p class="mb-2 text-gray-700">訂單編號：<span class="font-bold">{{ orderId }}</span></p>
+             
+            <label class="block mb-1 text-gray-700">選擇取消訂單原因</label>
+            <select v-model="cancelReason" class="cancel-select">
+                <option value="">請選擇原因</option>
+                <option value="改變心意">改變心意</option>
+                <option value="想變更購買項目">想變更購買項目</option>
+                <option value="迷糊或送貨資訊填寫錯誤">迷糊或送貨資訊填寫錯誤</option>
+                <option value="出貨太慢">出貨太慢</option>
+                <option value="其他原因">其他原因</option>
+            </select>
+             
+            <label class="block mt-3 mb-1 text-gray-700">取消訂單原因說明</label>
+            <textarea v-model="cancelDescription" placeholder="請輸入您取消訂單的原因" class="cancel-textarea"></textarea>
+             
+            <div class="cancel-button-container">
+                <button class="cancel-button" @@click="confirmCancel" :disabled="isCanceling">
+                    {{ isCanceling ? '取消訂單申請中' : '確定取消' }}
+                </button>
+            </div>
+        </div>
+         
+        <div class="flex justify-start mt-4">
+            <a href="~/FrontHome/CheckOrder" class="back-button text-blue-500 hover:underline">↩ 回上一頁</a>
+        </div>
+    </div>
+</div> 
+
+
+@section Scripts {
+    <script type="text/javascript"
+            src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+        var vueApp = {
+            data() {
+                return {
+                    orderId: "",
+                    orderItems: [],
+                    orders: [],
+                    baseAddress: "https://localhost:7279",
+                    cancelReason: "",
+                    cancelDescription: "",
+                    isCanceling: false
+                };
+            },
+            methods: {
+                getOrderDetails() {
+                    let _this = this;
+                    let urlParams = new URLSearchParams(window.location.search);
+                    _this.orderId = urlParams.get("oid");
+
+                    if (!_this.orderId) {
+                        swal("錯誤", "無效的訂單ID", "error");
+                        return;
+                    }
+
+                    axios.post(`${_this.baseAddress}/Ajax/GetOrderDetail`, { oid: _this.orderId })
+                        .then(response => {
+                            if (response.data) {
+                                _this.orderItems = response.data.map(od => ({
+                                    PId: od.pId,
+                                    Photo0: od.photo0,
+                                    Photo1: od.photo1,
+                                    PName: od.pName,
+                                    PSize: od.pSize,
+                                    PColor: od.pColor,
+                                    PCount: od.pCount,
+                                    PPrice: od.pPrice
+                                }));
+                            } else {
+                                swal("錯誤", "查無訂單細項", "error");
+                            }
+                        })
+                        .catch(err => {
+                            swal("錯誤", "取得訂單細節發生錯誤", "error");
+                        });
+                },
+                getOrderPrice: function () {
+                    let _this = this;
+
+                    axios.post(`${_this.baseAddress}/Ajax/GetOrderPrice`, { oid: _this.orderId })
+                        .then(response => {
+                            if (response.data) {
+                                _this.orders = response.data.map(order => ({
+                                    OID: order.oid,
+                                    OPrice: order.oPrice,
+                                    ODiscountedprice: order.oDiscountedprice,
+                                    OTotalPrice: order.oTotalPrice
+                                }));
+                            } else {
+                                swal("錯誤", "請先登入會員", "error");
+                            }
+                        })
+                        .catch(err => {
+                            swal("錯誤", "取得訂單價格發生錯誤", "error");
+                        });
+                },
+                confirmCancel() {
+
+                    if (!this.cancelReason) {
+                        swal("錯誤", "請選擇取消訂單原因", "error");
+                        return;
+                    }
+
+                    this.isCanceling = true;
+
+                    let cancelData = {
+                        Oid: this.orderId,
+                        OcancelReason: this.cancelReason,
+                        OcancelDescription: this.cancelDescription,
+                        OcancelDate: new Date().toISOString(),
+                        OcancelStatus: "申請中"
+                    };
+
+                    axios.post(`${this.baseAddress}/Ajax/CancelOrder`, cancelData)
+                        .then(response => {
+                            if (response.data.success) {
+                                swal("成功", `訂單已申請取消！`, "success")
+                                    .then(() => window.location.href = "/FrontHome/CheckOrder");
+                            } else {
+                                swal("錯誤", "訂單申請取消失敗", "error");
+                                this.isCanceling = false;
+                            }
+                        })
+                        .catch(error => {
+                            swal("錯誤", "取消訂單發生錯誤", "error");
+                            this.isCanceling = false;
+                        });
+                }
+            },
+            mounted() {
+                this.getOrderDetails();
+                this.getOrderPrice();
+            },
+            goBack() {
+                window.history.back();
+            }
+        };
+        Vue.createApp(vueApp).mount("#app");
+    </script>
+}
+
+@section Styles {
+    <style scoped>
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            table th, table td {
+                padding: 8px;
+                border: 1px solid #ccc;
+                text-align: center;
+            }
+
+
+                table th:nth-child(1), table td:nth-child(1) {
+                    width: 150px;
+                }
+
+                table th:nth-child(2), table td:nth-child(2) {
+                    width: 180px;
+                }
+
+                table th:nth-child(3), table td:nth-child(3) {
+                    width: 100px;
+                }
+
+                table th:nth-child(4), table td:nth-child(4) {
+                    width: 100px;
+                }
+
+                table th:nth-child(5), table td:nth-child(5) {
+                    width: 80px;
+                }
+
+                table th:nth-child(6), table td:nth-child(6) {
+                    width: 120px;
+                }
+
+                table th:nth-child(7), table td:nth-child(7) {
+                    width: 150px;
+                }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-top: 1px dashed #ccc;
+        }
+
+        .product-images {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100px;
+            margin-right: 20px;
+        }
+
+            .product-images img {
+                width: 80px;
+                height: 80px;
+                object-fit: cover;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                margin-bottom: 3px;
+            }
+
+
+        .product-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+
+        .product-field {
+            flex: 1;
+            min-width: 120px;
+            text-align: left;
+            font-size: 16px;
+            color: #333;
+            font-weight: normal;
+        }
+
+
+        .product-name {
+            flex: 2;
+            font-weight: bold;
+        }
+
+
+        .product-price {
+            flex: 1.5;
+            font-weight: bold;
+            color: black;
+            font-size: 16px;
+        }
+
+
+        .order-summary {
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+            text-align: right;
+        }
+
+            .order-summary p {
+                font-size: 16px;
+                font-weight: bold;
+            }
+
+        .total-price {
+            font-size: 20px;
+        }
+
+        .cancel-order {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 3px;
+        }
+
+        .cancel-order {
+            margin-top: 20px;
+            padding: 15px;
+            border-top: 2px solid #ddd;
+        }
+
+
+        .cancel-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+        }
+
+
+        .cancel-textarea {
+            width: 100%;
+            height: 80px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            resize: none;
+        }
+
+
+        .cancel-button {
+            display: block;
+            width: 150px;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #ff6600;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            align-items: center;
+        }
+
+        .cancel-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .cancel-button:hover {
+            background-color: #e65c00;
+        }
+
+
+        .track-btn {
+            margin-left: 10px;
+            padding: 4px 8px;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            .track-btn:hover {
+                background-color: #1d4ed8;
+            }
+
+
+        .table-container {
+            position: relative;
+            width: 100%;
+        }
+
+
+        .back-button {
+            position: absolute;
+            bottom: -45px;
+            right: 0;
+            background-color: white;
+            color: slateblue;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+
+            .back-button:hover {
+                color: darkblue;
+                transform: scale(1.05);
+            }
+    </style>
+}

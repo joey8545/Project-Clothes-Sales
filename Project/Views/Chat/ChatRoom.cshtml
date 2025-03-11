@@ -1,0 +1,1295 @@
+﻿@model IEnumerable<Project.Models.Tchat>
+@section Styles {
+    <style>
+        /* 基本重置樣式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 主容器樣式 */
+        .chatRoom_container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            background-color: #f5f5f5;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+
+        /* 左側聊天列表區域 */
+        .chat-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 聊天類型標籤 */
+        .type-tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .type-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+            .type-tab.active {
+                color: #0078d7;
+                border-bottom: 2px solid #0078d7;
+            }
+
+        /* 聊天列表 */
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            display: none;
+        }
+
+            .chat-list.active {
+                display: block;
+            }
+
+        /* 聊天項目 */
+        .chat-item {
+            display: flex;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .chat-item:hover {
+                background-color: #f9f9f9;
+            }
+
+            .chat-item.active {
+                background-color: #e6f7ff;
+            }
+
+        .chat-item-left {
+            margin-right: 12px;
+        }
+
+        .chat-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+            .chat-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .chat-item-right {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .chat-item-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .chat-item-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .chat-item-message {
+            font-size: 13px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 中間聊天主區域 */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f5f5f5;
+            position: relative; /* 確保子元素的絕對定位基於此容器 */
+        }
+
+        /* 聊天頭部 */
+        .chat-header {
+            padding: 15px;
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+
+        .chat-user-name {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .project-info {
+            text-align: right;
+        }
+
+        .project-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .project-status {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 12px;
+            border-radius: 12px;
+            background-color: #e6f7ff;
+            color: #0078d7;
+        }
+
+            .project-status.進行中 {
+                background-color: #e6f7ff;
+                color: #0078d7;
+            }
+
+            .project-status.已完成 {
+                background-color: #e6fff0;
+                color: #00a854;
+            }
+
+            .project-status.待確認 {
+                background-color: #fff7e6;
+                color: #fa8c16;
+            }
+
+        /* 聊天訊息的樣式 */
+        .chat-message {
+            font-size: 14px;
+            line-height: 1.4;
+            position: relative;
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            max-width: 60%; /* 訊息最大寬度 60% */
+            word-wrap: break-word;
+            clear: both; /* 確保訊息不會並排 */
+            display: flex;
+            flex-direction: column; /* 讓訊息垂直排列 */
+            align-items: flex-start; /* 預設讓接收訊息靠左 */
+            padding-bottom: 70px; /* 留出輸入區域的高度 */
+        }
+            /* 接收的訊息樣式 */
+            .chat-message.received {
+                padding: 4px 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+                border: 1px solid rgba(0, 0, 0, 0.04);
+                border-bottom-left-radius: 4px;
+                background: #e9ecef; /* 灰色背景 */
+                color: black;
+                align-self: flex-start; /* 置於左側 */
+                float: left; /* 使用 float 來靠左對齊 */
+            }
+            /* 送出的訊息樣式 */
+            .chat-message.sent {
+                padding: 4px 8px;
+                border-bottom-right-radius: 4px;
+                background: #007bff; /* 藍色背景 */
+                color: white;
+                float: right; /* 使用 float 來靠右對齊 */
+                margin-left: auto; /* 自動左邊距，確保靠右 */
+                align-self: flex-end; /* 置於右側 */
+            }
+            /* 系統通知的訊息樣式 */
+            .chat-message.system {
+                color: #666;
+                font-size: 13px;
+                margin: 8px auto;
+                text-align: center;
+                background: #f0f0f0;
+                padding: 8px 16px;
+                border-radius: 16px;
+                float: none !important; /* 防止 float 影響 */
+                align-self: center !important; /* 確保置中 */
+                max-width: 80%;
+                clear: both; /* 確保不受其他訊息的 float 影響 */
+            }
+
+        .message-content {
+            padding: 4px 8px;
+            word-wrap: break-word;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            text-align: right;
+            padding: 0 8px 5px;
+        }
+
+        .chat-input-area {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #fff;
+            padding: 10px 15px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            z-index: 100; /* 確保輸入區域在最上層 */
+        }
+
+        .media-upload-buttons {
+            display: flex;
+            margin-right: 10px;
+        }
+
+        .upload-btn, .emoji-btn, .send-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            font-size: 18px;
+            color: #555;
+            transition: transform 0.2s;
+        }
+
+            .upload-btn:hover, .emoji-btn:hover {
+                color: #0078d7;
+                transform: scale(1.1);
+            }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 8px 15px;
+            margin: 0 10px;
+            resize: none;
+            max-height: 120px;
+            min-height: 40px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+            .chat-input:focus {
+                border-color: #0078d7;
+            }
+
+        .send-btn {
+            color: #bbb;
+        }
+
+            .send-btn.active {
+                color: #0078d7;
+            }
+
+            .send-btn:hover.active {
+                transform: scale(1.1);
+            }
+
+        /* 聊天圖片和影片樣式 */
+        .chat-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .chat-video {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+        }
+
+        .file-link {
+            display: flex;
+            align-items: center;
+            color: #0078d7;
+        }
+
+            .file-link i {
+                margin-right: 5px;
+            }
+
+        /* 建立聊天室模態框 */
+        .create-chat-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: 500;
+            }
+
+            .form-group input, .form-group select {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+            }
+
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #0078d7;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+            .submit-btn:hover {
+                background-color: #005fa3;
+            }
+
+        /* 會員資料側邊欄 */
+        .profile-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100%;
+            background-color: #fff;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+            .profile-sidebar.active {
+                transform: translateX(0);
+            }
+
+        .profile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+
+            .profile-overlay.active {
+                display: block;
+            }
+
+        .profile-header {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-profile-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .profile-content {
+            padding: 15px;
+        }
+
+    </style>
+}
+@{
+    ViewData["Title"] = "ChatRoom";
+}
+<div id="chatApp">
+    <!-- 主聊天界面容器 -->
+    <div class="chatRoom_container">
+        <!-- 左側聊天列表區域 -->
+        <div class="chat-sidebar">
+            <!-- 聊天類型切換標籤 -->
+            <div class="type-tabs">
+                <!-- 客服訊息標籤 -->
+                <div class="type-tab active" data-type="proposal">客服訊息</div>
+            </div>
+
+            <!-- 提案訊息列表 -->
+            <div class="chat-list active" data-type="proposal">
+                <!-- 提案訊息項目將由JS動態生成 -->
+            </div>
+        </div>
+
+        <!-- 中間主聊天區域 -->
+        <div class="chat-main">
+            <!-- 聊天室頂部資訊欄 -->
+            <div class="chat-header">
+                <!-- 用戶頭像和名稱 -->
+                <div class="chat-user-info">
+                    <img class="chat-user-avatar" src="" alt="用戶頭像">
+                    <div class="chat-user-name"></div>
+                </div>
+
+                <!-- 專案資訊 -->
+                <div class="project-info">
+                    <div class="project-name"></div>
+                    <div class="project-status"></div>
+                </div>
+            </div>
+
+            <!-- 聊天訊息區域 -->
+            <div class="chat-messages" ref="messagesContainer">
+                <!-- 訊息將由Vue動態渲染 -->
+                <div v-for="(msg, index) in messages"
+                     :key="index"
+                     :class="['chat-message', msg.type]">
+                    <div class="message-content">{{msg.content}}</div>
+                    <div class="message-time">{{ msg.time }}</div>
+                </div>
+
+                <!-- 正在輸入提示 -->
+                <div v-if="isTyping" class="message received typing">
+                    <div class="message-content">正在輸入...</div>
+                </div>
+            </div>
+
+            <!-- 聊天輸入區域 -->
+            <div class="chat-input-area">
+                <!-- 媒體上傳按鈕區 -->
+                <div class="media-upload-buttons">
+                    <!-- 上傳檔案按鈕 -->
+                    <button class="upload-btn" title="上傳檔案" @@click="triggerFileInput('file')">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <!-- 上傳圖片按鈕 -->
+                    <button class="upload-btn" title="上傳圖片" @@click="triggerFileInput('image')">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <!-- 上傳影片按鈕 -->
+                    <button class="upload-btn" title="上傳影片" @@click="triggerFileInput('video')">
+                        <i class="fas fa-video"></i>
+                    </button>
+                </div>
+
+                <!-- 訊息輸入框 -->
+                <textarea class="chat-input"
+                          ref="chatInput"
+                          v-model="message"
+                          placeholder="輸入訊息..."
+                          rows="1"></textarea>
+
+                <!-- 表情符號按鈕 -->
+                <button class="emoji-btn upload-btn" title="表情符號">
+                    <i class="fas fa-smile"></i>
+                </button>
+
+                <!-- 發送訊息按鈕 -->
+                <button class="send-btn"
+                        ref="sendButton"
+                        @@click="sendMessage"
+                        :class="{ active: message.trim() }"
+                        title="發送訊息">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 右側會員資料側邊欄 -->
+        <div class="profile-sidebar" v-if="false">
+            <!-- 會員資料將由JS動態產生 -->
+            <div class="profile-header">
+                <h3>會員資料</h3>
+                <button class="close-profile-btn">&times;</button>
+            </div>
+            <div class="profile-content">
+                <!-- 會員資料內容 -->
+            </div>
+        </div>
+
+        <!-- 側邊欄遮罩 -->
+        <div class="profile-overlay" v-if="false"></div>
+    </div>
+
+    <!-- 建立新聊天室的模態框 (暫時隱藏) -->
+    <div class="create-chat-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>建立新聊天室</h3>
+                <button class="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 建立聊天室表單 -->
+                <form id="createChatForm">
+                    <div class="form-group">
+                        <label for="chatType">聊天類型</label>
+                        <select id="chatType" name="chatType">
+                            <option value="proposal">提案訊息</option>
+                            <option value="case">案件訊息</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="memberSelect">選擇會員</label>
+                        <select id="memberSelect" name="memberId">
+                            <option v-for="member in members" :value="member.id">{{ member.name }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="projectName">專案名稱</label>
+                        <input type="text" id="projectName" name="projectName" required>
+                    </div>
+                    <button type="submit" class="submit-btn">建立</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.15/vue.global.prod.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+
+            // 定義檔案類型對應表，用於上傳檔案時的類型選擇和驗證
+        const fileTypeMap = {
+            'file': {label: '檔案', accept: '*/*' },
+            'image': {label: '圖片', accept: 'image/*' },
+            'video': {label: '影片', accept: 'video/*' }
+        };
+
+            // 建立初始聊天資料模擬，整合原本第一個JS的結構和資料
+        const initialChatData = {
+            proposal: {
+                1: {
+                    name: "陳蟑言",
+                    avatar: "https://th.bing.com/th/id/R.9296d25101792ea80cf1bba824573355?rik=404SXrsH2qx3Rg&riu=http%3a%2f%2fi2.kknews.cc%2fnn-So7Rsv5m8q7KexKIR_UKCtv5r5PqiLz1c1U0_L3M%2f0.jpg&ehk=PLJYjJbjSYAXr4fkJB2dDsB6HcJsk7jTdaGuI9WXbz0%3d&risl=&pid=ImgRaw&r=0",
+                    projectName: "客製化服飾問題",
+                    status: "進行中",
+                    messages: [
+                        {
+                            type: "received",
+                            content: "請問客製化服飾什麼時候出貨？",
+                            time: "下午 2:02",
+                            timestamp: new Date().toLocaleTimeString('en-US', {hour12: false })
+                        },
+                    ],
+                },
+                2: {
+                    name: "謝陳達",
+                    avatar: "https://th.bing.com/th/id/OIP.JuNf6Wc6CQUCPyXUTjiuZAHaHr?rs=1&pid=ImgDetMain",
+                    projectName: "會員註銷",
+                    status: "已完成",
+                    messages: [
+                        {
+                            type: "received",
+                            content: "我的會員要註銷",
+                            time: "上午 9:20",
+                            timestamp: new Date().toLocaleTimeString('en-US', {hour12: false })
+                        },
+                    ],
+                },
+            },
+        };
+
+         // 創建 Vue 應用
+        const chatApp = Vue.createApp({
+            data() {
+                return {
+                    userId: "2", // 目前登入的會員ID
+                    userName: "陳蟑言", // 目前登入的會員名稱
+                    chatId: null, // 目前的聊天室ID
+                    chatType: "proposal", // 目前的聊天類型，預設為提案訊息
+                    chatData: JSON.parse(JSON.stringify(initialChatData)), // 所有聊天資料，使用深拷貝避免修改原始資料
+                    message: "", // 輸入框中的訊息內容
+                    messages: [], // 目前顯示的訊息列表
+                    isTyping: false, // 用來顯示用戶是否正在輸入訊息
+                    hubConnection: null, // SignalR 連接對象
+                    lastEnterTime: null, // 追蹤最後一次按Enter的時間，用於雙擊Enter發送訊息功能
+                    members: [] // 儲存會員列表
+                }
+            },
+            // 計算屬性
+            computed: {
+                // 獲取當前聊天室的完整資訊
+                currentChat() {
+                    if (!this.chatId || !this.chatData[this.chatType]) return null;
+                            return this.chatData[this.chatType][this.chatId] || null;
+                    },
+                // 判斷是否有選中聊天室
+                hasChatSelected() {
+                    return !!this.currentChat;
+                },
+                // 根據當前時間生成問候語
+                greeting() {
+                    const currentHour = new Date().getHours();
+                    if (currentHour >= 5 && currentHour < 12) {
+                        return "早安";
+                    }
+                    else if (currentHour >= 12 && currentHour < 18) {
+                        return "午安";
+                    }
+                    else {
+                        return "晚安";
+                    }
+                },
+            },
+            // 監聽器
+            watch: {
+                // 監聽當前聊天室變化，更新顯示的訊息
+                currentChat: {
+                handler(newChat) {
+                                if (newChat) {
+                this.messages = newChat.messages || [];
+                                    // 滾動到最新訊息
+                                    this.$nextTick(() => this.scrollToBottom());
+                                } else {
+                this.messages = [];
+                                }
+            },
+            immediate: true, // 初始化時立即執行
+            deep: true // 深度監聽，確保監聽到陣列和物件內部的變化
+                        },
+                    },
+            // 組件載入時初始化
+            async mounted() {
+                        try {
+                // 連接 SignalR
+                await this.initializeSignalRConnection();
+
+            // 初始化UI和事件綁定
+            this.initializeUI();
+
+            // 自動選擇第一個聊天
+            this.selectFirstChat();
+
+            // 監聽消息變化以自動滾動
+            this.$watch(
+                                () => this.messages.length,
+                                () => this.$nextTick(this.scrollToBottom)
+            );
+                        }
+            catch (error) {
+                console.error("初始化失敗:", error);
+            Swal.fire({
+                title: '錯誤',
+            text: '連接聊天服務失敗，請重新整理頁面',
+            icon: 'error'
+                            });
+                        }
+                    },
+                            // 在組件卸載時
+        beforeDestroy() {
+            if (this.hubConnection) {
+                this.hubConnection.stop();
+            }
+        },
+            methods: {
+                // 初始化UI和事件綁定
+                initializeUI() {
+                            // 綁定切換聊天類型標籤的事件
+                            const typeTabs = document.querySelectorAll(".type-tab");
+                            if (typeTabs && typeTabs.length > 0) {
+                typeTabs.forEach(tab => {
+                    tab.addEventListener("click", (e) => {
+                        const type = e.target.dataset.type;
+                        this.switchChatType(type);
+                    });
+                });
+                            }
+
+            // 綁定輸入框的特殊處理事件
+            const chatInput = document.querySelector(".chat-input");
+            if (chatInput) {
+                chatInput.addEventListener("keydown", this.handleKeyPress);
+            chatInput.addEventListener("input", this.adjustInputHeight);
+                            }
+
+            // 初始化聊天列表
+            this.initializeChatLists();
+                        },
+
+            // 初始化聊天列表，將聊天資料渲染到UI上
+            initializeChatLists() {
+                            // 清空現有的聊天列表
+                            const chatLists = document.querySelectorAll(".chat-list");
+                            chatLists.forEach(list => {
+                                const type = list.dataset.type;
+            // 清空列表
+            list.innerHTML = "";
+
+            // 遍歷聊天資料並創建列表項
+            if (this.chatData[type]) {
+                Object.entries(this.chatData[type]).forEach(([id, chat]) => {
+                    const chatItem = this.createChatListItem(id, type, chat);
+                    list.appendChild(chatItem);
+                });
+                                }
+                            });
+                        },
+
+            // 創建聊天列表項
+            createChatListItem(id, type, chat) {
+                            const lastMessage = chat.messages[chat.messages.length - 1] || {time: '', content: '' };
+
+            const chatItem = document.createElement("div");
+            chatItem.className = "chat-item";
+            chatItem.dataset.chatId = id;
+            chatItem.dataset.type = type;
+
+            chatItem.innerHTML = `
+            <div class="chat-item-left">
+                <div class="chat-avatar">
+                    <img src="${chat.avatar}" alt="${chat.name}">
+                </div>
+            </div>
+            <div class="chat-item-right">
+                <div class="chat-item-header">
+                    <span class="chat-item-name">${chat.name}</span>
+                    <span class="chat-item-time">${lastMessage.time}</span>
+                </div>
+                <div class="chat-item-message">${lastMessage.content}</div>
+            </div>
+            `;
+
+                            // 添加點擊事件
+                            chatItem.addEventListener("click", () => this.selectChat(id, type));
+
+            return chatItem;
+                        },
+
+            // 選擇聊天室
+            selectChat(chatId, type) {
+                // 更新當前的聊天ID和類型
+                this.chatId = chatId;
+            this.chatType = type;
+
+                            // 更新UI選中狀態
+                            document.querySelectorAll(".chat-item").forEach(item => {
+                item.classList.remove("active");
+                            });
+
+            const selectedItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"][data-type="${type}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add("active");
+                            }
+
+            // 更新聊天室頭部信息
+            this.updateChatHeader();
+
+            // 更新SignalR連接的聊天室
+            this.joinChatRoom(chatId);
+                        },
+
+            // 自動選擇第一個聊天
+            selectFirstChat() {
+                            const firstChat = document.querySelector(`.chat-list[data-type="${this.chatType}"] .chat-item`);
+            if (firstChat) {
+                                const chatId = firstChat.dataset.chatId;
+            const type = firstChat.dataset.type;
+            this.selectChat(chatId, type);
+                            }
+                        },
+
+            // 切換聊天類型
+            switchChatType(type) {
+                            if (!type || this.chatType === type) return;
+
+            // 更新當前類型
+            this.chatType = type;
+
+                            // 更新UI
+                            document.querySelectorAll(".type-tab").forEach(tab => {
+                tab.classList.toggle("active", tab.dataset.type === type);
+                            });
+
+                            document.querySelectorAll(".chat-list").forEach(list => {
+                list.classList.toggle("active", list.dataset.type === type);
+                            });
+
+            // 自動選擇第一個聊天
+            this.selectFirstChat();
+                        },
+
+            // 更新聊天室頭部信息
+            updateChatHeader() {
+                            if (!this.currentChat) return;
+
+            // 更新用戶頭像和名稱
+            const avatarElement = document.querySelector(".chat-user-avatar");
+            const nameElement = document.querySelector(".chat-user-name");
+            if (avatarElement) avatarElement.src = this.currentChat.avatar;
+            if (nameElement) nameElement.textContent = this.currentChat.name;
+
+            // 更新專案資訊
+            const projectNameElement = document.querySelector(".project-name");
+            const statusElement = document.querySelector(".project-status");
+
+            if (projectNameElement) projectNameElement.textContent = this.currentChat.projectName;
+            if (statusElement) {
+                statusElement.textContent = this.currentChat.status;
+            statusElement.className = `project-status ${this.currentChat.status}`;
+                            }
+                        },
+
+            // 初始化 SignalR 連線的方法
+            async initializeSignalRConnection() {
+                            try {
+                                // 如果已經有連接，先關閉
+        if (this.hubConnection) {
+            await this.hubConnection.stop();
+            // 清除所有事件處理器，確保不會重複訂閱
+            this.hubConnection.off("UpdContent");
+        }
+                // 建立 SignalR 連線
+                this.hubConnection = new signalR.HubConnectionBuilder()
+                    .withUrl(`https://localhost:7279/ChatRoom?room=${this.userId}`) // 設定 SignalR Hub 連線
+                    .withAutomaticReconnect([0, 2000, 5000, 10000, null]) // 自動重連設置
+                    .configureLogging(signalR.LogLevel.Debug) // 開啟詳細的日誌記錄
+                    .build();
+            // 設置接收訊息的處理器
+                this.hubConnection.on("UpdContent", (msg) => {
+                    // 過濾空訊息
+                    if (!msg.message || msg.message.trim() === "") return;
+                    //console.log("收到訊息:", content);
+                    //const roomContainer = document.querySelector("#room");
+                    if (msg.user === this.userId) {
+                        return;
+                    }
+                    else if (msg.user === "System") {
+                        this.messages.push({
+                            type: "system",
+                            content: msg.message,
+                            timestamp: msg.timestamp || new Date().toLocaleTimeString('en-US', { hour12: false })
+                        });
+                    }
+                    else {
+                        // 將訊息加入Vue數據中
+                        this.messages.push({
+                            type: "received",
+                            content: msg.message,
+                            user: msg.user,
+                            timestamp: msg.timestamp || new Date().toLocaleTimeString('en-US', { hour12: false })
+                        });
+                    }
+                    this.scrollToBottom();
+                });
+
+            // 啟動連接
+            await this.hubConnection.start();
+            console.log("SignalR連接成功");
+            // 如果已選擇聊天室，則加入該聊天室
+        if (this.chatId) {
+            this.joinChatRoom(this.chatId);
+        }
+                            }
+            catch (err) {
+                // 錯誤處理
+                console.error("連線錯誤:", err);
+            // 將錯誤訊息加入聊天室
+            this.addSystemMessage("無法連接到客服系統，請稍後再試");
+
+            // 顯示錯誤提示
+            Swal.fire({
+                title: '錯誤',
+            text: '無法連接到客服系統，請稍後再試',
+            icon: 'error'
+                                });
+
+                                // 3秒後重試
+                                setTimeout(() => {
+                this.initializeSignalRConnection();
+                                }, 3000);
+                            }
+                        },
+
+            // 加入特定聊天室
+            async joinChatRoom(roomId) {
+                            if (!this.hubConnection || !roomId) return;
+
+            try {
+                // 呼叫 SignalR 方法來加入特定聊天室
+                await this.hubConnection.invoke("JoinRoom", roomId.toString());
+            console.log(`加入聊天室 ${roomId} 成功`);
+                            } catch (error) {
+                console.error(`加入聊天室失敗:`, error);
+                            }
+                        },
+
+            // 接收訊息處理
+            receiveMessage(msg) {
+                console.log("收到伺服器訊息: ", msg);
+
+            // 檢查消息是否有效
+            if (!msg || !msg.message) return;
+                // 如果消息包含ID，優先使用ID去重
+        if (msg.MessageSendId) {
+            const isDuplicateById = this.messages.some(m =>
+                m.MessageSendId === msg.MessageSendId);
+            if (isDuplicateById) {
+                console.log("偵測到重複訊息(ID匹配)，已忽略", msg);
+                return;
+            }
+        }
+            // 根據消息類型添加不同樣式
+            const messageObj = {
+                type: msg.user === this.userId ? "sent" :
+            msg.user === "System" ? "system" : "received",
+            content: msg.message,
+            time: this.formatMessageTime(),
+            timestamp: msg.timestamp ? new Date(msg.timestamp).getTime() : Date.now()
+            };
+                        // 檢查是否為重複訊息（時間允許 1 秒誤差）
+        const isDuplicate = this.messages.some(m =>
+            Math.abs(m.timestamp - messageObj.timestamp) < 1 &&
+            m.content === messageObj.content &&
+            m.type === messageObj.type &&
+            m.user === messageObj.user
+        );
+
+        // 如果是重複訊息，則不添加
+        if (isDuplicate) {
+            console.log("偵測到重複訊息，已忽略", messageObj);
+            return;
+        }
+            // 如果目前有選擇聊天室，則添加訊息到當前聊天
+            if (this.currentChat && this.messages) {
+                // 添加到Vue的data中，確保視圖更新
+                this.messages.push(messageObj);
+
+            // 同時更新chatData中的訊息
+            this.currentChat.messages.push(messageObj);
+
+            // 更新左側列表顯示的最新訊息
+            this.updateChatListItem(this.chatId, this.chatType, messageObj.content, messageObj.time);
+
+            // 滾動到底部
+            this.$nextTick(this.scrollToBottom);
+                            }
+                        },
+
+            // 新增系統訊息
+            addSystemMessage(content) {
+                            const systemMsg = {
+                type: "system",
+            content: content,
+            time: this.formatMessageTime(),
+            timestamp: new Date().toLocaleTimeString('en-US', {hour12: false })
+                            };
+
+            this.messages.push(systemMsg);
+
+            // 如果有選中的聊天室，也添加到聊天室資料中
+            if (this.currentChat) {
+                this.currentChat.messages.push(systemMsg);
+                            }
+
+            // 滾動到底部
+            this.$nextTick(this.scrollToBottom);
+                        },
+
+            // 發送訊息
+            async sendMessage() {
+                            // 檢查訊息是否為空或是否有選中聊天室
+                            if (!this.message.trim() || !this.hasChatSelected) return;
+
+            const messageContent = this.message.trim();
+            // 添加用戶訊息
+            this.messages.push({
+                type: "sent",
+                content: messageContent,
+                timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
+            });
+            // 立即滾動到底部
+            await this.$nextTick();
+            this.scrollToBottom();
+            try {
+                                // 格式化當前時間
+                                const messageTime = this.formatMessageTime();
+
+
+            // 更新左側列表顯示的最新訊息
+            this.updateChatListItem(this.chatId, this.chatType, messageContent, messageTime);
+
+            // 同時呼叫 SignalR 方法發送到服務器
+            await this.hubConnection.invoke("SendMessage", this.userId, messageContent);
+
+            // 清空輸入框
+            this.message = "";
+
+            // 重置輸入框高度
+            this.adjustInputHeight({target: document.querySelector(".chat-input") });
+
+            // 重置雙Enter狀態
+            this.lastEnterTime = null;
+
+            // 重置輸入狀態
+            this.isTyping = false;
+
+                            }
+            catch (error) {
+                console.error("發送訊息失敗:", error);
+            // 顯示錯誤提示
+            Swal.fire({
+                title: '錯誤',
+            text: '發送訊息失敗，請稍後再試',
+            icon: 'error'
+                                });
+                            }
+                        },
+
+            // 更新左側列表項的最新訊息
+            updateChatListItem(chatId, type, content, time) {
+                            const chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"][data-type="${type}"]`);
+            if (chatItem) {
+                                const messageElement = chatItem.querySelector(".chat-item-message");
+            const timeElement = chatItem.querySelector(".chat-item-time");
+            if (messageElement) messageElement.textContent = content;
+            if (timeElement) timeElement.textContent = time;
+                            }
+                        },
+
+            // 格式化訊息時間為 "上午/下午 HH:MM" 格式
+            formatMessageTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+                            const period = hours >= 12 ? "下午" : "上午";
+            const displayHours = hours % 12 || 12;
+            return `${period} ${displayHours}:${minutes.toString().padStart(2, "0")}`;
+                        },
+
+            // 處理鍵盤按鍵事件，特別是Enter鍵發送訊息
+            handleKeyPress(e) {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault(); // 防止換行
+
+            const currentTime = Date.now();
+
+            if (!this.lastEnterTime) {
+                // 第一次按 Enter
+                this.lastEnterTime = currentTime;
+            // 顯示提示訊息
+            if (this.message.trim()) {
+                e.target.style.backgroundColor = "#f0f8ff"; // 輕微變色提示
+                                    }
+                                } else {
+                                    // 第二次按 Enter
+                                    const timeDiff = currentTime - this.lastEnterTime;
+
+            if (timeDiff < 500) {
+                                        // 如果兩次按 Enter 間隔太短，忽略
+                                        return;
+                                    }
+
+            // 第二次 Enter 一定發送
+            this.sendMessage();
+            this.lastEnterTime = null; // 重置 lastEnterTime
+                                }
+                            } else if (e.key !== "Enter") {
+                // 按其他鍵時重置 lastEnterTime
+                this.lastEnterTime = null;
+
+            // 如果有文字，設定為正在輸入狀態
+            if (this.message.trim()) {
+                this.isTyping = true;
+                                } else {
+                this.isTyping = false;
+                                }
+                            }
+                        },
+
+            // 動態調整輸入框高度
+            adjustInputHeight(e) {
+                            const inputElement = e.target;
+            // 先重置高度
+            inputElement.style.height = "12px";
+            // 然後設置新高度，但不超過120px
+            const newHeight = Math.min(inputElement.scrollHeight, 120);
+            inputElement.style.height = newHeight + "px";
+                        },
+
+            // 處理檔案上傳
+            async handleFileUpload(event, fileType) {
+                            const fileInput = event.target;
+            if (!fileInput.files || fileInput.files.length === 0) return;
+            const file = fileInput.files[0];
+
+            // 檢查檔案類型（如果需要限制）
+            if (fileTypeMap[fileType] && !file.type.startsWith(fileType.split('/')[0] + "/")) {
+                Swal.fire({
+                    title: '錯誤',
+                    text: `請選擇${fileTypeMap[fileType].label}檔案`,
+                    icon: 'error'
+                });
+            return;
+                            }
+
+            // 顯示上傳中訊息
+            this.addSystemMessage(`正在上傳${fileTypeMap[fileType]?.label ?? "檔案"}...`);
+
+            try {
+                                const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetch('/Chat/UploadFile', {method: 'POST', body: formData });
+
+            // 移除載入訊息
+            this.messages.pop();
+            if (this.currentChat) {
+                this.currentChat.messages.pop();
+                                }
+
+            if (!response.ok) throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+
+            const result = await response.json();
+            if (result.success) {
+                let fileMessageContent = "";
+            if (fileType === "image") {
+                fileMessageContent = `<img src="${result.fileUrl}" alt="${result.originalName}" class="chat-image height:50% width:50%"/>`;
+                                    }
+            else if (fileType === "video") {
+                fileMessageContent = `<video controls class="chat-video"><source src="${result.fileUrl}" type="${result.contentType}"></video>`;
+                                    }
+            else {
+                fileMessageContent = `<div class="file-link"><a href="${result.fileUrl}" target="_blank" download="${result.originalName}"><i class="fas fa-file"></i> ${result.originalName}</a></div>`;
+                                    }
+
+            // 發送到聊天室
+            // await this.hubConnection.invoke("SendMessage", this.userId, fileMessageContent);
+                                }
+            else {
+                this.addSystemMessage(`檔案上傳失敗：${result.message}`);
+                                }
+                            }
+            catch (error) {
+                console.error("檔案上傳失敗:", error);
+            // 移除載入訊息如果還存在
+            const lastMsg = this.messages[this.messages.length - 1];
+            if (lastMsg && lastMsg.type === "system" && lastMsg.content.includes("正在上傳")) {
+                this.messages.pop();
+            if (this.currentChat) {
+                this.currentChat.messages.pop();
+                                    }
+                                }
+
+            this.addSystemMessage("檔案上傳失敗，請稍後再試");
+                            }
+            finally {
+                this.scrollToBottom();
+            fileInput.value = ''; // 清空輸入框//測試
+                            }
+                        },
+
+            // 觸發檔案上傳輸入框
+            triggerFileInput(fileType) {
+                            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.style.display = 'none';
+            if (fileTypeMap[fileType]) {
+                fileInput.accept = fileTypeMap[fileType].accept;
+                            }
+
+                            fileInput.addEventListener('change', (event) => this.handleFileUpload(event, fileType));
+            document.body.appendChild(fileInput);
+            fileInput.click();
+
+                            // 100ms後移除這個臨時節點
+                            setTimeout(() => document.body.removeChild(fileInput), 100);
+                        },
+
+            // 滾動到最新消息
+            scrollToBottom() {
+                            // 優先使用Vue refs引用的元素
+                            const container = this.$refs.messagesContainer;
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            return;
+                            }
+
+            // 作為備用，直接查詢DOM
+            const chatMessages = document.querySelector('.chat-messages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            }
+                        }
+                    }
+                });
+
+            // 啟動 Vue 應用
+            chatApp.mount("#chatApp");
+    </script>
+}

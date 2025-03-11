@@ -1,0 +1,228 @@
+﻿@section styles {
+    <style>
+        .btn-send {
+            border: 1px solid gray;
+            border-radius: 15px;
+        }
+
+        .btn-send:hover {
+                border: 1px solid gray;
+                background: #D1E9E9;
+        }
+
+        .btn-search {
+            height: 40px;
+            border: 1px solid #afb4bdc7 !important;
+            border-radius: 20% !important;
+        }
+
+        .btn-search:hover {
+                background-color: #B3D9D9 !important;
+        }
+        .red{
+            color: #CE0000;
+            font-size:17px;
+            font-weight:bold;
+        }
+        .blue{
+            color: #0072E3;
+            font-size: 17px;
+            font-weight: bold;
+        }
+    </style>
+}
+<div id="app">
+    <div class="d-flex">
+        <h3 class="fw-bold">
+            訂單意見回覆
+        </h3>
+        <div class="ms-auto me-auto">
+            <input type="radio" class="btn-check" name="options" id="option1" autocomplete="off" checked>
+            <label class="btn" v-bind:class="{ 'btn-secondary': ischecked === '全部' }" for="option1" v-on:click="filter('全部')">全部</label>
+
+            <input type="radio" class="btn-check" name="options" id="option2" autocomplete="off">
+            <label class="btn " v-bind:class="{ 'btn-secondary': ischecked === '未回覆' }" for="option2" v-on:click="filter('未回覆')">未回覆</label>
+
+            <input type="radio" class="btn-check" name="options" id="option3" autocomplete="off">
+            <label class="btn " v-bind:class="{ 'btn-secondary': ischecked === '已回覆' }" for="option3" v-on:click="filter('已回覆')">已回覆</label>
+        </div>
+        <div class="d-flex justify-content-end">
+            <input type="text" class="form-control" v-model= "search" placeholder="請輸入關鍵字"/>
+            <button class="btn btn-outline-success btn-search ms-3" type="button" v-on:click="searchAdvice">
+                <div><i class="bi bi-search "></i></div>
+            </button>
+        </div>
+    </div>
+
+    <hr />
+    <div class="row">
+        <div class="col-3" v-for="item in advice">
+            <div class="card">
+                <div class="card-body">
+                    
+                    <div class="mt-2 d-flex">
+                        <div class="mt-2">意見編號：{{item.id}}</div>
+                        <div class="mt-2 ms-auto d-flex align-items-center" style="color:darkgray">{{item.dateTime.split('T')[0]}}</div>
+                    </div>
+                    <div class="mt-2 d-flex">
+                        <div class="mt-1">訂單編號：{{item.oid}}</div>
+                        <div class="ms-auto" :class="item.isReply? 'blue':'red' ">{{item.isReply==true? "已回覆":"未回覆"}}</div>
+                    </div>
+                    
+                    <h5 class="card-title fw-bold mb-0">{{item.question}}</h5>
+                    <p class="card-text mb-0 fw-bold">{{item.title}}</p>
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-send mt-3" v-on:click="openEdit(item.id)" data-bs-toggle="modal" data-bs-target="#exampleModal0">回覆</button>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Edit -->
+    <div class="modal fade" id="exampleModal0" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="exampleModalLabel">訂單意見回覆</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex">
+                        <div class="mt-2">意見編號：{{adviceId}}</div>
+                        <div class="mt-2 ms-auto d-flex align-items-center" style="color:darkgray">{{adviceDate.split('T')[0]}}</div>
+                    </div>
+                    <div class="mt-2">訂單編號：{{adviceOid}}</div>
+                    <div class="d-flex">
+                        <div class="mt-2">會員編號：{{adviceMid}}</div>
+                        <div class="mt-2 ms-auto d-flex align-items-center">Email：{{adviceEmail}}</div>
+                    </div>
+                    <div class="mt-4 mb-3">
+                        <label for="question" class="form-label mb-2">主要問題</label>
+                        <input class="form-control" v-model="adviceQuestion" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label mb-2">主旨</label>
+                        <input type="text" class="form-control" id="title" v-model="adviceTitle" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label  mb-2">簡述 </label>
+                        <textarea class="form-control" style="height:150px;overflow-y: scroll; resize: none;" maxlength="150" v-model="adviceDescription" readonly></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" v-on:click="sendEmail">回覆信件</button>
+                </div>
+            </div>
+        </div>
+    </div> 
+</div>
+
+
+@section Scripts {
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        var vueApp = {
+            data() {
+                return {
+                    baseAddress: "https://localhost:7279",
+                    search: "",
+                    allAdvice: [],
+                    advice:[],
+                    ischecked:"全部",
+                    editId: null,
+                    adviceId:"",
+                    adviceDate:"",
+                    adviceOid:"",
+                    adviceEmail:"",
+                    adviceQuestion:"",
+                    adviceTitle:"",
+                    adviceDescription:""
+                }
+            },
+            methods: {
+                getAdvice: function () {
+                    let _this = this;
+                    axios.get(`${_this.baseAddress}/Order/getAdvice`).then(response => {
+                        console.log(response.data);
+                        _this.allAdvice = response.data;
+                        _this.advice = [..._this.allAdvice];
+                    }).catch(err => {
+                        // alert(err.message);
+                    });
+                },
+                searchAdvice: function () {
+                    let filteredAdvice = [...this.allAdvice]; 
+
+                    if (this.ischecked === "未回覆") {
+                        filteredAdvice = filteredAdvice.filter(item => !item.isReply);
+                    } else if (this.ischecked === "已回覆") {
+                        filteredAdvice = filteredAdvice.filter(item => item.isReply);
+                    }
+
+                    if (this.search) {
+                        filteredAdvice = filteredAdvice.filter(item =>
+                            item.title.includes(this.search) || item.description.includes(this.search)
+                        );
+                    }
+
+                    this.advice = filteredAdvice;
+                },
+                filter: function (filtertype) {
+                    let currentDate = new Date();
+                    if (filtertype == '未回覆') {
+                        this.advice = this.allAdvice.filter(item => item.isReply==false);
+                        this.ischecked = "未回覆";
+                    } else if (filtertype == '已回覆') {
+                        this.advice = this.allAdvice.filter(item => item.isReply == true);
+                        this.ischecked = "已回覆";
+                    } else {
+                        this.advice = [...this.allAdvice];
+                        this.ischecked = "全部";
+                    }
+                },
+                openEdit: function (id) {
+                    let _this = this;
+                    _this.editId = id;
+                    axios.get(`${_this.baseAddress}/Ajax/openAdvice/${id}`).then(response => {
+                        console.log(response.data);
+                        _this.adviceId=response.data.id;
+                        _this.adviceDate=response.data.dateTime;
+                        _this.adviceOid=response.data.oid;
+                        _this.adviceMid=response.data.mid;
+                        _this.adviceEmail=response.data.email;
+                        _this.adviceQuestion=response.data.question;
+                        _this.adviceTitle=response.data.title;
+                        _this.adviceDescription=response.data.description;
+                    }).catch(err=>{
+                    
+                        })
+                },
+                sendEmail:function(){
+                    if (this.adviceEmail) {
+                        let subject = encodeURIComponent("關於您的訂單意見回覆");
+                        let body = encodeURIComponent(`您好，\n\n感謝您的訂單意見，以下是我們的回覆：\n\n（請填寫回覆內容）\n\n敬祝順心`);
+        
+                        // 使用 Gmail 來發送郵件
+                        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${this.adviceEmail}&su=${subject}&body=${body}`, '_blank');
+                    };
+                    let request={
+                        Id:this.editId,
+                        IsReply:true
+                    };
+                    axios.put(`${this.baseAddress}/Ajax/ReplyAdvice`,request).then(response=>{
+                        this.getAdvice();
+                    }).catch(err=>{
+                    
+                    })
+                }
+            },
+            mounted() {
+                this.getAdvice();
+            }
+        };
+        var App = Vue.createApp(vueApp).mount("#app");
+    </script>
+}
+

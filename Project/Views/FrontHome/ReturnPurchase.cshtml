@@ -1,0 +1,514 @@
+﻿@{
+    Layout = "~/Views/Shared/FrontMember_Layoutcshtml.cshtml";
+}
+
+<div id="app" class="return-exchange-container">
+    <h3 class="shipping-title">申選退 / 換貨</h3>
+    <div class="notice">同筆出貨訂單，僅接受申請一次</div>
+
+    <table class="return-exchange-table">
+        <thead>
+            <tr>
+                <th>勾選</th>
+                <th>商品名稱</th>
+                <th>處理方式<span v-if="errors.handle" style="color: red; font-weight: bold;">(必填)</span></th>
+                <th>選擇數量<span v-if="errors.quantity" style="color: red; font-weight: bold;">(必填)</span></th>
+                <th>換貨/退貨原因<span v-if="errors.reason" style="color: red; font-weight: bold;">(必填)</span></th>
+                <th>其他退/換貨原因</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(item, index) in orderItems" :key="index">
+                <td><input type="checkbox" v-model="item.selected" @@change="handleSelect(item)" :data-odid="item.odid"/></td>
+                <td>{{ item.productName }}</td>
+                <td>
+                    <label>
+                        <input type="radio" :name="'method_' + index" value="退貨" v-model="item.method" @@change="handleRadioChange(item)" /> 退貨
+                        <input type="radio" :name="'method_' + index" value="換貨" v-model="item.method" @@change="handleRadioChange(item)" /> 換貨
+                    </label>
+                </td>
+                <td>
+                    <button class="qty-btn" @@click="decreaseQty(item)">-</button>
+                    <input type="number"
+                           v-model.number="item.exchangeQty"
+                           :min="1"
+                           :max="item.pCount"
+                           class="qty-input"
+                           @@input="validateQuantity(item)" />
+                    <button class="qty-btn" @@click="increaseQty(item)">+</button>
+                </td>
+                <td>
+                    <select v-model="item.reason" class="reason-select">
+                        <option value="" disabled>請選擇原因</option>
+                        <option v-for="(option, idx) in reasonOptions" :key="idx" :value="option">{{ option }}</option>
+                    </select>
+                </td>
+                <td><input type="text" v-model="item.reply" placeholder="其他退/換貨原因" /></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="recipient-section" v-if="hasExchange">
+        <h3>收件資訊 (若為換貨請填寫)</h3>
+        <div class="recipient-fields">
+            <label>收件人<span v-if="errors.name" style="color: red; font-weight: bold;">(必填)</span>：</label>
+            <input type="text" v-model="recipient.name" />
+            <label>聯絡電話<span v-if="errors.phone" style="color: red; font-weight: bold;">(必填)</span>：</label>
+            <input type="tel" v-model="recipient.phone"/>
+            <label>收件地址<span v-if="errors.address" style="color: red; font-weight: bold;">(必填)</span>：</label>
+            <input type="text" v-model="recipient.address"/>
+            <label>備註：</label>
+            <textarea v-model="recipient.remark"></textarea>
+        </div>
+    </div> 
+
+    <div class="notes-section">
+        <h5>備註/說明</h5>
+        <ul class="notes-list">
+            <li>若申請退換貨商品與實際收到商品不符時，UniPay將依實際收到之商品辦理退貨處理。</li>
+            <li>退換貨比例如超高者，恐會影響未來申請服務的權利。</li>
+            <li>申請完成後，需至「訂單查詢」查看退貨編號，並於申請截止時間前完成寄件。</li>
+        </ul>
+        <label class="agreement">
+            <input type="checkbox" v-model="agreeToTerms" :class="{'error': errors.terms}" />
+            我同意辦理退貨時，由UniPay代為處理銷貨退回證明單，以加速退貨退款作業。<span v-if="errors.terms" style="color: red; font-weight: bold;">(請勾選)</span>
+        </label>
+    </div>
+
+    <div class="submit-area">
+        <button class="submit-btn" @@click="validateForm">送出申請</button>
+        <button class="cancel-btn" @@click="goBack">取消</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript"
+            src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+        const vueApp = {
+            data() {
+                return {
+                    orderId: "",
+                    orderItems: [],
+                    baseAddress: "https://localhost:7279",
+                    reasonOptions: [
+                        "商品破損",
+                        "尺寸不合適",
+                        "不符合預期",
+                        "其他原因"
+                    ],
+                    recipient: {
+                        name: "",
+                        phone: "",
+                        address: "",
+                        remark: ""
+                    },
+                    agreeToTerms: false,
+                    errors: {
+                        check: false,
+                        name: false,
+                        phone: false,
+                        address: false,
+                        terms: false
+                    }
+                }
+            },
+            computed: { 
+                hasExchange() {
+                    return this.orderItems.some(item => item.selected && item.method === "換貨");
+                }
+            },
+            methods: {
+                getOrderDetails() {
+                    let _this = this;
+                    let urlParams = new URLSearchParams(window.location.search);
+                    _this.orderId = urlParams.get("oid");
+
+                    if (!_this.orderId) {
+                        console.error("無效的訂單 ID");
+                        return;
+                    }
+
+                    axios.post(`${_this.baseAddress}/Ajax/GetOrderDetail`, { oid: _this.orderId })
+                        .then(response => { 
+                            if (response.data) {
+                                _this.orderItems = response.data.map(od => ({
+                                    odid: od.odid,
+                                    productName: od.pName,
+                                    pSize: od.pSize,
+                                    pColor: od.pColor,
+                                    pCount: od.pCount,
+                                    oStatus: od.ostatus, 
+                                    selected: false,
+                                    method: "",
+                                    exchangeQty: 0,  
+                                    reason: "",
+                                    reply: ""
+                                }));
+                            } else {
+                                console.error("查無訂單細項");
+                            }
+                        })
+                        .catch(err => {
+                            console.error("錯誤: ", err);
+                        });
+                },
+                handleRadioChange(item) {
+                    if (!item.selected) {
+                        item.selected = true;  
+                    }
+                },
+                handleSelect(item) { 
+                    if (item.selected) {
+                        item.method = "退貨";  
+                        item.exchangeQty = 1;  
+                    } else { 
+                        item.method = "";
+                        item.exchangeQty = 0;
+                        item.reason = "";
+                        item.reply = "";
+                    }
+                },
+                decreaseQty(item) {
+                    if (item.exchangeQty > 1) {
+                        item.exchangeQty--;
+                    }
+                }, 
+                increaseQty(item) {
+                    if (item.exchangeQty < item.pCount) {
+                        item.exchangeQty++;
+                    }
+                },
+                validateQuantity(item) {
+                    if (item.exchangeQty < 1) {
+                        item.exchangeQty = 1;
+                    } else if (item.exchangeQty > item.pCount) {
+                        item.exchangeQty = item.pCount;
+                    }
+                },
+                validateForm() {
+                    let _this = this;
+                    let isValid = true;
+                    this.errors = {
+                        handle: false,
+                        quantity: false,
+                        reason: false,
+                        check: false,
+                        name: false,
+                        phone: false,
+                        address: false,
+                        terms: false
+                    };
+
+                    let selectedItems = this.orderItems.filter(item => item.selected);
+                     
+                    if (selectedItems.length === 0) {
+                        swal("請先勾選要退換的商品", { icon: "warning" });
+                        return;
+                    }
+
+                    for (let item of selectedItems) {
+                        if (!item.method) {
+                            this.errors.handle = true;
+                            isValid = false;
+                        }
+                        if (!item.exchangeQty || item.exchangeQty < 1) {
+                            this.errors.quantity = true;
+                            isValid = false;
+                        }
+                        if (!item.reason) {
+                            this.errors.reason = true;
+                            isValid = false;
+                        }
+                    }
+
+                    if (this.hasExchange) {
+                        if (!this.recipient.name) {
+                            this.errors.name = true;
+                            isValid = false;
+                        }
+                        if (!/^09\d{8}$/.test(this.recipient.phone)) {
+                            this.errors.phone = true;
+                            isValid = false;
+                        }
+                        if (!this.recipient.address) {
+                            this.errors.address = true;
+                            isValid = false;
+                        }
+                    }
+
+                    if (!this.agreeToTerms) {
+                        this.errors.terms = true;
+                        isValid = false;
+                    }
+
+                    if (!isValid) {
+                        swal("請修正表單中的錯誤。", { icon: "warning" });
+                        return;
+                    }
+
+                    let requestData = {
+                        items: selectedItems.map(item => ({
+                            Odid: item.odid,
+                            Rmethod: item.method,
+                            Rqty: item.exchangeQty,
+                            Rreason: item.reason,
+                            RotherReason: item.reply,
+                            ...(this.hasExchange ? {
+                                Rname: this.recipient.name,
+                                Rphone: this.recipient.phone,
+                                Raddress: this.recipient.address,
+                                Rdescription: this.recipient.remark
+                            } : {})
+                        }))
+                    };
+                     
+                    axios.put(`${this.baseAddress}/Ajax/ReturnExchange`, requestData.items)
+                        .then(response => {
+                            if (response.data.success) {
+                                return axios.put(`${this.baseAddress}/Ajax/ReturnedExchange`, { orderId: _this.orderId });
+                            } else {
+                                throw new Error("儲存退換貨明細失敗：" + response.data.message);
+                            }
+                        })
+                        .then(response2 => {
+                            if (response2.data.success) {
+                                swal("表單提交成功！", { icon: "success" })
+                                    .then(() => window.location.href = "/FrontHome/CheckOrder");
+                            } else {
+                                swal("更新訂單資料失敗：" + response2.data.message, { icon: "error" });
+                            }
+                        })
+                        .catch(error => {
+                            swal("發生錯誤：" + error.message, { icon: "error" });
+                        });
+                }, 
+                goBack() {
+                    window.history.back();
+                }
+            },
+            mounted() {
+                this.getOrderDetails();
+            }
+        };
+        Vue.createApp(vueApp).mount("#app");
+    </script>
+}
+
+@section Styles {
+    <style scoped>
+        .return-exchange-container {
+            width: 100%;
+            margin: 0 auto;
+            font-family: "Microsoft JhengHei", sans-serif;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .shipping-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .notice {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .return-exchange-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+            .return-exchange-table th, .return-exchange-table td {
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .return-exchange-table thead {
+                background-color: #f2f2f2;
+            }
+
+            .return-exchange-table th:nth-child(1) {
+                width: 5%;
+            }
+
+            .return-exchange-table th:nth-child(2) {
+                width: 20%;
+            }
+
+            .return-exchange-table th:nth-child(3) {
+                width: 15%;
+            }
+
+            .return-exchange-table th:nth-child(4) {
+                width: 15%;
+            }
+
+            .return-exchange-table th:nth-child(5) {
+                width: 20%;
+            }
+
+            .return-exchange-table th:nth-child(6) {
+                width: 25%;
+            }
+
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            margin: 0 3px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 28px;
+        }
+
+        .qty-input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 3px;
+            font-size: 1rem;
+        }
+
+        textarea {
+            width: 95%;
+            height: 60px;
+            resize: none;
+        }
+
+        input[type="text"] {
+            width: 95%;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .recipient-section {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+            .recipient-section h3 {
+                font-size: 1rem;
+                margin-bottom: 10px;
+            }
+
+        .recipient-fields {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 10px 20px;
+            align-items: center;
+        }
+
+            .recipient-fields label {
+                text-align: right;
+            }
+
+            .recipient-fields input,
+            .recipient-fields textarea {
+                width: 85%;
+                padding: 4px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 0.9rem;
+            }
+
+            .recipient-fields textarea {
+                height: 60px;
+                resize: none;
+            }
+
+        .submit-area {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .submit-btn, .cancel-btn {
+            padding: 6px 12px;
+            border: none;
+            cursor: pointer;
+            background-color: #3b82f6;
+            color: #fff;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+            .submit-btn:hover, .cancel-btn:hover {
+                background-color: #2563eb;
+            }
+
+        .reason-select {
+            width: 95%;
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            font-size: 0.9rem;
+            color: #333;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+            .reason-select:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+            }
+
+        .notes-section {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+
+            .notes-section h3 {
+                font-size: 1.2rem;
+                margin-bottom: 10px;
+            }
+
+        .notes-list {
+            padding-left: 3px;
+            padding-top: 5px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+            .notes-list li {
+                margin-bottom: 5px;
+                line-height: 1.5;
+            }
+
+        .agreement {
+            display: flex;
+            align-items: center;
+        }
+
+            .agreement input {
+                margin-right: 3px;
+            }
+
+        .error {
+            border: 2px solid red;
+        }
+    </style>
+}

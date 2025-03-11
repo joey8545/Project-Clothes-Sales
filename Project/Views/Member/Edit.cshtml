@@ -1,0 +1,148 @@
+﻿@model Project.Models.Tmember
+
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1 class="text-center">編輯會員作業</h1><hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>            
+            <input type="hidden" asp-for="Mid" value="@Model.Mid"/>
+            <div class="row">
+                <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="Mname" class="control-label"></label>
+                <input asp-for="Mname" class="form-control" />
+                <span asp-validation-for="Mname" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Mgender" class="control-label"></label>
+                <select asp-for="Mgender" class="form-control" >
+                <option value="0">男性</option>
+                <option value="1">女性</option>
+                </select>
+                <span asp-validation-for="Mgender" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Maccount" class="control-label"></label>
+                <input asp-for="Maccount" class="form-control" />
+                <span asp-validation-for="Maccount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Mpassword" class="control-label"></label>
+                <input asp-for="Mpassword" class="form-control" />
+                <span asp-validation-for="Mpassword" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Memail" class="control-label"></label>
+                <input asp-for="Memail" class="form-control" />
+                <span asp-validation-for="Memail" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Maddress" class="control-label"></label>
+                <input asp-for="Maddress" class="form-control" />
+                <span asp-validation-for="Maddress" class="text-danger"></span>
+            </div>
+        </div>
+            <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="Mbirthday" class="control-label"></label>
+                <input asp-for="Mbirthday" class="form-control datepicker" />
+                <span asp-validation-for="Mbirthday" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Mphone" class="control-label"></label>
+                <input asp-for="Mphone" class="form-control" />
+                <span asp-validation-for="Mphone" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Mpermissions" class="control-label"></label>
+                <select asp-for="Mpermissions" class="form-control" >
+                <option value="0">一般訪客</option>
+                <option value="1">黑名單</option>
+                <option value="2">會員</option>
+                </select>
+                <span asp-validation-for="Mpermissions" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Mphoto" class="control-label">會員照片</label>
+                <input type="file" name="photo" class="form-control"
+                       accept=".jpg,.jpeg,.png,.gif"
+                       id="photoInput"
+                       onchange="previewImage(this)" />
+                <small class="text-muted">允許的格式: JPG, JPEG, PNG, GIF (最大 1MB)</small>
+                @if (!string.IsNullOrEmpty(Model.Mphoto))
+                {
+                    <div class="mt-2">
+                        <img src="~/images/@Model.Mphoto" style="max-width:200px" alt="當前照片" />
+                        <p>當前照片: @Model.Mphoto</p>
+                    </div>
+                }
+                <!-- 圖片預覽區 -->
+                <div class="mt-2">
+                    <img id="photoPreview" src="#" alt="新照片預覽"
+                         style="max-width: 200px; display: none;" />
+                </div>
+            </div>
+        </div>
+    </div>
+            <div class="form-group d-flex justify-content-end mb-2">
+                <input type="submit" value="修改完成" class="btn btn-primary me-2" />
+                <a asp-action="List" class="btn btn-secondary">取消</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(function() {
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                language: 'zh-TW',
+                todayHighlight: true,
+                clearBtn: true,
+                orientation: "bottom auto",
+                startYear: 1990,
+                endYear: 2100,
+                startDate: '1990-01-01',
+                endDate: '2100-12-31'
+            });
+        });
+
+        function previewImage(input) {
+            const preview = document.getElementById('photoPreview');
+            const maxSize = 1 * 1024 * 1024; // 1MB
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+
+                if (file.size > maxSize) {
+                    alert('檔案大小超過限制，請選擇小於 1MB 的檔案');
+                    input.value = '';
+                    preview.src = '#';
+                    preview.style.display = 'none';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '#';
+                preview.style.display = 'none';
+            }
+        }
+    </script>
+}

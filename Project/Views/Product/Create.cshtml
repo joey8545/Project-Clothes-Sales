@@ -1,0 +1,211 @@
+﻿@model Project.Models.CProductWrap
+
+@section Styles {
+    <style>
+        .custom-btn {
+            border: none; /* 預設無邊框 */
+            background-color: none;
+            color: #003060;
+        }
+
+        .custom-btn:hover {
+            background-color: #666699; /* 顏色稍微變深 */
+            color: white;
+        }
+    </style>
+}
+<!-- 麵包屑 -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb mt-3">
+        <li class="breadcrumb-item"><a href="~/Home/Index" class="text-decoration-none">首頁</a></li>
+        <li class="breadcrumb-item"><a href="~/Product/List" class="text-decoration-none">商品列表</a></li>
+        <li class="breadcrumb-item active" aria-current="page">新增商品</li>
+    </ol>
+</nav>
+<h4>新增商品</h4>
+<hr />
+
+<form asp-action="Create" id="createForm" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row">
+        <div class="form-group col-md-4">
+            <label for="photo">主圖片：</label>
+            <input type="file" id="photo" name="photoPath" accept="image/*">
+            <br>
+            <img id="mainPreview" src="#" style="display:none; max-width:200px; margin:10px auto;">
+        </div>
+        <div class="form-group col-md-8">
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label asp-for="Pname" class="control-label"></label>
+                    <input asp-for="Pname" class="form-control mb-3" />
+                    <span asp-validation-for="Pname" class="text-danger"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <label asp-for="Pprice" class="control-label"></label>
+                    <input asp-for="Pprice" class="form-control mb-3" />
+                    <span asp-validation-for="Pprice" class="text-danger"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <label asp-for="Ptype" class="control-label"></label>
+                    <select asp-for="Ptype" asp-items="@(new SelectList(Model.PtypeList))" class="form-control mb-3">
+                        <option value="">請選擇類型</option>
+                    </select>
+                    <span asp-validation-for="Ptype" class="text-danger"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <label asp-for="Pcategory" class="control-label"></label>
+                    <select asp-for="Pcategory" asp-items="@(new SelectList(Model.PcategoryList))" class="form-control mb-3">
+                        <option value="">請選擇分類</option>
+                    </select>
+                    <span asp-validation-for="Pcategory" class="text-danger"></span>
+                </div>
+                <div class="form-group col-md-12">
+                    <label asp-for="Pdescription" class="control-label"></label>
+                    <textarea asp-for="Pdescription" class="form-control mb-3" rows="4"></textarea>
+                    <span asp-validation-for="Pdescription" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-md-4 mt-4">
+            <label for="photos">多張圖片：</label>
+            <input type="file" id="photos" name="photos" multiple accept="image/*">
+            <br>
+            <div id="multiplePreview"></div>
+        </div>
+        <!-- 商品庫存動態新增區塊 -->
+        <div class="form-group col-md-8">
+            <label class="control-label my-3">新增商品規格 (顏色 / 尺寸 / 庫存)</label>
+            <div id="inventoryContainer">
+                <!-- 預設第一組 -->
+                <div class="inventory-group mb-2">
+                    <input type="text" name="TproductInventories[0].Pcolor" class="form-control d-inline w-25 me-4" placeholder="顏色">
+                    <select name="TproductInventories[0].Psize" class="form-control d-inline w-25 me-4">
+                        <option value="">請選擇尺寸</option>
+                        <option value="F">F</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                    </select>
+                    <input type="number" name="TproductInventories[0].Pstock" class="form-control d-inline w-25 me-4" placeholder="庫存">
+                    <button type="button" class="btn btn-success btn-sm mb-3" onclick="addInventory()">+</button>
+                </div>
+            </div>
+        </div>
+        <div class="form-group mt-4 text-center">
+            <input type="submit" value="新增商品" class="btn custom-btn mb-3" />
+        </div>
+    </div>
+</form>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    @{
+        var sortedSizes = new List<string> { "F", "S", "M", "L", "XL" }
+            .Where(s => Model.Sizes.Contains(s))
+            .Concat(Model.Sizes.Except(new List<string> { "F", "S", "M", "L", "XL" }))
+            .ToList();
+    }
+    <script>
+        let inventoryIndex = 1; // 控制陣列索引
+
+        // 從 Razor 變數生成尺寸選項
+        let sizeOptions = '@Html.Raw(Json.Serialize(sortedSizes.Select(s => $"<option value=\'{s}\'> {s} </option>").ToList()))'.replace(/[\[\]"]/g, '');
+
+        function addInventory() {
+            let container = document.getElementById("inventoryContainer");
+
+            let newInventory = document.createElement("div");
+            newInventory.classList.add("inventory-group", "mb-2");
+            newInventory.innerHTML = `
+                <input type="text" name="TproductInventories[${inventoryIndex}].Pcolor" class="form-control d-inline w-25 me-4" placeholder="顏色">
+                <select name="TproductInventories[${inventoryIndex}].Psize" class="form-control d-inline w-25 me-4">
+                    <option value="">請選擇尺寸</option>
+                    ${sizeOptions}
+                </select>
+                <input type="number" name="TproductInventories[${inventoryIndex}].Pstock" class="form-control d-inline w-25 me-4" placeholder="庫存">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeInventory(this)">-</button>
+            `;
+
+            container.appendChild(newInventory);
+            inventoryIndex++;
+        }
+
+        function removeInventory(button) {
+            button.parentElement.remove();
+        }
+        document.getElementById("photo").addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const output = document.getElementById('mainPreview');
+                    output.src = reader.result;
+                    output.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById("photos").addEventListener("change", function (e) {
+            const files = e.target.files;
+            const previewDiv = document.getElementById("multiplePreview");
+            previewDiv.innerHTML = ""; // 清空舊的預覽圖
+
+            for (const file of files) {
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const img = document.createElement("img");
+                        img.src = event.target.result;
+                        img.style.maxWidth = "175px";
+                        img.style.margin = "5px";
+                        previewDiv.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+        document.getElementById("createForm").addEventListener("submit", function (e) {
+            e.preventDefault(); // 防止表單直接提交
+
+            let formData = new FormData(this);
+
+            fetch(this.action, {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: "新增成功！",
+                        text: "你要繼續新增商品還是返回列表？",
+                        icon: "success",
+                        showCancelButton: true,
+                        confirmButtonText: "繼續新增",
+                        cancelButtonText: "返回列表"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.reload(); // 重新整理頁面，繼續新增商品
+                        } else {
+                            window.location.href = "/Product/List"; // 返回商品列表
+                        }
+                    });
+                } else {
+                    Swal.fire("錯誤", data.message, "error");
+                }
+            })
+            .catch(error => {
+                Swal.fire("錯誤", "發生錯誤，請稍後再試", "error");
+            });
+        });
+    </script>
+
+}

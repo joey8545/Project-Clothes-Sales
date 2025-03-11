@@ -1,0 +1,317 @@
+﻿
+/* 聊天視窗 */
+.chat-widget {
+    position: fixed; /* 固定於畫面上 */
+    bottom: 100px; /* 增加底部距離 */
+    right: 100px; /* 距離右側 400px */
+    z-index: 1000; /* 設定較高的層級，確保顯示於最上方 */
+    display: flex; /*使用 flex 排列內部元素*/
+    flex-direction: column; /* 讓內容垂直排列 */
+    width: 360px; /* 設定視窗寬度 */
+    height: 500px; /* 設定視窗高度 */
+    background: white; /* 背景顏色為白色 */
+    border-radius: 16px; /* 圓角邊框，讓視窗更美觀 */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); /* 添加陰影效果 */
+    /*opacity: 0;*/ /*預設隱藏*/
+    visibility: hidden; /*預設不可見*/
+    transform: scale(0.95) translateY(10px); /* 初始縮小並稍微向下移動，增加動畫效果 */
+    transition: all 0.3s ease; /* 平滑過渡動畫效果 */
+}
+/* 顯示聊天視窗的狀態 */
+.chat-widget.show {
+    opacity: 1; /* 顯示視窗 */
+    visibility: visible; /* 設定為可見 */
+    transform: scale(1) translateY(0); /* 回到正常大小與位置 */
+}
+
+.chat-wrapper {
+    position: fixed;
+    bottom: 150px;
+    right: 30px;
+    z-index: 1000;
+}
+/* 彈出動畫 */
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}  
+/* 聊天氣泡按鈕（未開啟視窗時的提示） */
+.chat-bubble {
+    position: fixed; /* 固定位置 */
+    bottom: 150px; /* 距離底部 150px */
+    right: 30px; /* 距離右側 30px */
+    z-index: 1001; /* 確保氣泡始終在最上層 */
+    background: #0080FF; /* 按鈕背景色為藍色 */
+    color: white; /* 文字顏色為白色 */
+    padding: 10px 20px; /* 內距設定 */
+    border-radius: 20px; /* 設定圓角 */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); /* 陰影效果 */
+    cursor: pointer; /* 滑鼠懸停時顯示手形游標 */
+    font-size: 14px;
+    max-width: 220px;
+    display: block; /* 確保顯示 */
+}
+.chat-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: blue;
+    transform: rotate(45deg);
+    box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.04);
+}
+/* 當滑鼠懸停在氣泡按鈕上時，顯示提示文字 */
+.chat-bubble:hover .tips {
+    opacity: 1; /* 顯示提示文字 */
+    visibility: visible; /* 設為可見 */
+    transform: translateY(-10px); /* 讓提示文字稍微上移，增加動態效果 */
+}
+
+/* 提示文字的樣式 */
+.tips {
+    position: fixed; /* 固定位置 */
+    bottom: 200px; /* 距離底部 200px，顯示在氣泡按鈕上方 */
+    right: 30px;
+    background: rgba(0, 0, 0, 1); /* 背景為半透明黑色 */
+    color: white; /* 文字顏色為白色 */
+    padding: 10px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    opacity: 0; /* 預設隱藏 */
+    visibility: hidden; /* 預設不可見 */
+    transform: translateY(10px); /* 初始稍微向下偏移 */
+    transition: all 0.3s ease; /* 平滑過渡動畫 */
+}
+/* 機器人頭像聊天開關按鈕（用於開啟聊天視窗） */
+.chat-toggle {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 2px solid black;
+    border-radius: 50%; /* 設為圓形按鈕 */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    overflow: hidden;
+    opacity: 1;
+    visibility: visible;
+    transition: all 0.3s ease;
+}
+.chat-widget.active ~ .chat-toggle {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+/* 聊天開關按鈕內的圖片 */
+.chat-toggle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%; /* 確保圖片也是圓形 */
+    transition: transform 0.3s ease;
+}
+.chat-toggle:hover img {
+    transform: scale(1.05);
+}
+/* 聊天視窗頭部 */
+.chat-widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #f8f9fa; /* 藍色標題背景 */
+    color: white; /* 文字顏色為白色 */
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    min-height: 60px; /* 固定標題高度 */
+    flex-shrink: 0; /* 防止標題區域被壓縮 */
+}
+.chat-widget-header h4 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2c3e50;
+}
+.chat-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 8px;
+    font-size: 18px;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+}
+.chat-close:hover {
+    background: #f1f5f9;
+    color: #64748b;
+}
+/* 聊天內容區域 */
+.chat-widget-context {
+    min-height: 300px; /* 最小高度 */
+    max-height: 300px; /* 最大高度不超過容器 */
+    flex: 1; /* 讓內容區域自動填充剩餘空間 */
+    height: 0; /* 重要：讓 flex: 1 正確工作 */
+    padding: 20px;
+    display: flex;
+    gap: 12px;
+    overflow-y: auto; /* 允許滾動 */
+    background: #f8f9fa; /* 淺灰色背景 */
+    flex-direction: column; /* 讓訊息垂直排列 */
+    scroll-behavior: smooth; /* 平滑滾動效果 */
+}
+/* 確保訊息容器內的內容正確排列 */
+.chat-widget-context::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+/* 聊天訊息的樣式 */
+.chat-message {
+    font-size: 15px;
+    line-height: 1.5;
+    position: relative;
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    border-radius: 20px;
+    max-width: 80%; /* 訊息最大寬度 80% */
+    word-wrap: break-word;
+    clear: both; /* 確保訊息不會並排 */
+    display: flex;
+    flex-direction: column; /* 讓訊息垂直排列 */
+    align-items: flex-start; /* 預設讓接收訊息靠左 */
+}
+ /* 接收的訊息樣式 */
+.chat-message.received {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-bottom-left-radius: 4px;
+    background: #e9ecef; /* 灰色背景 */
+    color: black;
+    align-self: flex-start; /* 置於左側 */
+    float: left; /* 使用 float 來靠左對齊 */
+}
+ /* 送出的訊息樣式 */
+.chat-message.sent {
+    border-bottom-right-radius: 4px;
+    background: #007bff; /* 藍色背景 */
+    color: white;
+    float: right; /* 使用 float 來靠右對齊 */
+    margin-left: auto; /* 自動左邊距，確保靠右 */
+    align-self: flex-end; /* 置於右側 */
+}
+/* 系統通知的訊息樣式 */
+    .chat-message.system {
+        color: #666;
+        font-size: 13px;
+        margin: 8px auto;
+        text-align: center;
+        background: #f0f0f0;
+        padding: 8px 16px;
+        border-radius: 16px;
+        float: none !important; /* 防止 float 影響 */
+        align-self: center !important; /* 確保置中 */
+        max-width: 80%;
+        clear: both; /* 確保不受其他訊息的 float 影響 */
+    }
+/* 聊天輸入區域 */
+.chat-widget-footer {
+    padding: 10px 20px;
+    background: #f8f9fa;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    flex-shrink: 0; /* 防止輸入區域被壓縮 */
+    min-height: 80px; /* 固定輸入區域高度 */
+}
+/* 聊天輸入框及按鈕的容器 */
+.chat-widget-input {
+    padding: 16px;
+    background: white;
+    border: 1px solid #ced4da;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+/* 訊息輸入框 */
+    .chat-widget-input input {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        outline: none;
+        margin-right: 10px;
+        font-size: 15px;
+        transition: all 0.2s ease;
+        background: #f8fafc;
+    }
+.chat-widget-input input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+/* 送出按鈕 */
+.chat-widget-input button {
+    font-size: 20px;
+    background: #007bff;
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 50%; /* 圓形按鈕 */
+    cursor: pointer;
+    transition: transform 0.2s; /* 增加點擊動畫效果 */
+}
+.chat-widget-input button:hover {
+    background: #f1f5f9;
+    color: #2563eb;
+}
+/* 新增真人客服按鈕樣式 */
+.real-customer-service-btn {
+    background: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.real-customer-service-btn:hover {
+    background: #218838;
+}
+/* 響應式設計 */
+@media(max-width: 768px) {
+    .chat-widget {
+        width: calc(100 % - 32px);
+        margin: 0 16px;
+        bottom: 90px;
+    }
+
+    .chat-bubble {
+        right: 85px;
+    }
+}
+body {
+   
+}

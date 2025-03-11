@@ -1,0 +1,374 @@
+﻿@model Project.Models.CProductWrap
+
+@{
+    Layout = "~/Views/Shared/Front_Layout.cshtml";
+}
+@section Styles {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cactus+Classical+Serif&family=LXGW+WenKai+TC&family=Liu+Jian+Mao+Cao&family=Long+Cang&family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+    <style>
+        .btn-side {
+            position: absolute;
+            margin: 2px;
+            background-color: #8891a3c7 !important;
+            border: none !important;
+            color: white !important;
+            width: 60px;
+            height: 35px;
+            border-radius: 10px !important;
+        }
+
+        .btn-side:hover {
+            background-color: #8a8282c7 !important;
+            border: 1px solid #8891a3c7 !important;
+        }
+
+        .product-item {
+            text-align: center;
+        }
+
+        .sticky-sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto; /* 確保如果內容過長，仍可在內部滾動 */
+        }
+
+        .sticky-sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .product-images img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            margin: 0;
+            padding: 0;
+        }
+
+        .product-images .col-6 {
+            padding: 0; /* 移除 Bootstrap 預設間距 */
+        }
+
+        .favorite {
+            font-size: 20px;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: gray !important;
+        }
+
+        .bi-heart-fill {
+            color: indianred !important;
+        }
+        .pdes{
+            font-size:12px;
+            color:grey;
+        }
+    </style>
+}
+
+<div class="container">
+    <div class="row"> 
+        <!-- 左側圖片區-->
+        <div class="col-md-8 mt-4">
+            <div class="row product-images">
+                <div class="col-6">
+                    <img src="~/Images/@Model.Pphoto" alt="">
+                </div>
+                @{
+                    int count = 0;
+                    @foreach (var image in Model.Images)
+                    {
+                        count++;
+                        <div class="col-6"><img src="~/Images/@image" alt="商品圖片"></div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- 右側固定欄 -->
+        <div class="col-md-4 sticky-sidebar p-5">
+            <i class="bi bi-heart favorite p-4" data-id="@Model.Pid"
+               onclick="addToFavorite('@Model.Pid','@Model.Pname','@Model.Pphoto','@Model.Pprice', this)">
+            </i>
+            <div class="fs-4 fw-bold">@Html.DisplayFor(model => model.Pname)</div> 
+            <div class="pdes">@Html.DisplayFor(model => model.Pdescription)</div>
+            <div class="fs-5 my-3 text-danger">NT$ @Html.DisplayFor(model => model.Pprice)</div>
+           
+            <!-- 顏色選擇 -->
+            <div class="my-3">
+                <input type="hidden" id="selectedColor">
+                <label class="d-block my-2">COLOR:</label>
+                @foreach (var color in Model.Colors)
+                {
+                    <button type="button" class="btn btn-outline-secondary btn-sm color-btn me-2"
+                            data-color="@color" onclick="selectColor(this)">
+                        @color
+                    </button>
+                }
+            </div>
+            <!-- 尺寸選擇 -->
+            <div class="my-3">
+                <input type="hidden" id="selectedSize">
+                <label class="d-block my-2">SIZE:</label>
+                @foreach (var size in Model.Sizes)
+                {
+                    string key = $"{Model.Colors.First()}-{size}";
+                    int stock = Model.StockMap.ContainsKey(key) ? Model.StockMap[key] : 0;
+
+                    if (stock > 0)
+                    {
+                        <button type="button" class="btn btn-outline-secondary btn-sm size-btn me-2"
+                                data-size="@size" data-stock="@stock"
+                                onclick="selectSize(this)">
+                            @size
+                        </button>
+                    }
+                }
+            </div>
+            <!-- 數量選擇 -->
+            <div class="my-3">
+                <label class="d-block my-2">QTY:</label>
+                <div class="input-group" style="max-width: 125px;">
+                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="decreaseQuantity()">-</button>
+                    <input type="text" class="form-control text-center bg-white" style="height:32px;" value="1" id="quantity" readonly>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="increaseQuantity()">+</button>
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm mt-3 w-50"
+                    onclick="addToCart('@Model.Pid','@Model.Pname','@Model.Ptype','@Model.Pcategory','@Model.Pphoto','@Model.Pprice')">
+                加入購物車
+            </button>
+            <h4 class="ms-2">商品評價
+                <span class="text-muted fs-6">（@Model.CommentCount</span>則評論）
+            </h4>
+            @foreach (var comment in Model.Comments)
+            {
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h4 class="mt-4">
+                                @{
+                                    var maskedName = comment.Mname.Length > 2
+                                    ? comment.Mname.Substring(0, comment.Mname.Length - 2) + "**"
+                                    : comment.Mname;
+                                }
+                                @maskedName
+                            </h4>
+                            <p class="text-muted">@comment.ComCreateDate.ToString("yyyy-MM-dd")</p>
+                        </div>
+                        <p class="text-muted">規格：@comment.Pcolor／@comment.Psize</p>
+                        <!-- 星星評價 -->
+                        <div class="rating mt-2">
+                            @for (int i = 0; i < 5; i++) 
+                            {
+                                if (i < comment.Rating)
+                                {
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-star text-warning"></i>
+                                }
+                            }
+                        </div>
+                        <p>@comment.Comment</p>
+                        @if (!string.IsNullOrEmpty(comment.ComImage1) || !string.IsNullOrEmpty(comment.ComImage2))
+                        {
+                            <div class="d-flex mt-3">
+                                @if (!string.IsNullOrEmpty(comment.ComImage1))
+                                {
+                                    <a href="~/uploads/@comment.ComImage1" data-lightbox="comment-gallery-@comment.ComId">
+                                        <img src="~/uploads/@comment.ComImage1" class="img-thumbnail me-2" width="80" alt="圖片1">
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(comment.ComImage2))
+                                {
+                                    <a href="~/uploads/@comment.ComImage2" data-lightbox="comment-gallery-@comment.ComId">
+                                        <img src="~/uploads/@comment.ComImage2" class="img-thumbnail me-2" width="80" alt="圖片2">
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+    <script>
+
+        //加入最愛
+        $(document).ready(function () {
+            // 取得使用者已收藏的商品 ID 並標記紅色
+            $.ajax({
+                url: "/Ajax/GetFavoriteID",
+                type: "GET",
+                success: function (favoriteIDs) {
+                    favoriteIDs.forEach(function (pid) {
+                        let heartIcon = $(`.favorite[data-id='${pid}']`);
+                        heartIcon.removeClass("bi-heart").addClass("bi-heart-fill text-danger");
+                    });
+                },
+                error: function () {
+                    console.log("無法獲取收藏資料");
+                }
+            });
+        });
+
+        function addToFavorite(pid, pname, pphoto, pprice, element) {
+            $.ajax({
+                url: "/Ajax/PostFavorite",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    PId: pid,
+                    PName: pname,
+                    PPhoto: pphoto,
+                    PPrice: pprice
+                }),
+                success: function (response) {
+                    if (response === "請先登入會員") {
+                        Swal.fire("提示", response, "warning");
+                    } else if (response === "已加入收藏" || response === "已移除收藏") {
+                        toggleFavoriteUI(element);
+                        Swal.fire("成功", response, "success");
+                    } else {
+                        Swal.fire("錯誤", "操作發生錯誤，請稍後再試", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("錯誤", "系統錯誤，請稍後再試！", "error");
+                }
+            });
+        }
+
+        function toggleFavoriteUI(element) {
+            let isFavorite = $(element).hasClass("bi-heart-fill");
+
+            if (isFavorite) {
+                $(element).removeClass("bi-heart-fill text-danger").addClass("bi-heart");
+            } else {
+                $(element).removeClass("bi-heart").addClass("bi-heart-fill text-danger");
+            }
+        }
+
+        //顏色尺寸變換庫存
+        let selectedColor = null;
+        let selectedSize = null;
+        let currentStock = 0;
+        var StockMap = @Html.Raw(Json.Serialize(Model.StockMap));
+
+        function selectColor(button) {
+            selectedColor = button.getAttribute("data-color");
+            document.getElementById("selectedColor").value = selectedColor;
+
+            document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            updateSizes();
+        }
+
+        function selectSize(button) {
+            if (!selectedColor) {
+                Swal.fire("提示", "請先選擇顏色", "warning");
+                return;
+            }
+
+            selectedSize = button.getAttribute("data-size");
+            document.getElementById("selectedSize").value = selectedSize;
+            currentStock = parseInt(button.getAttribute("data-stock"), 10);
+
+            document.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        }
+
+        function updateSizes() {
+            document.querySelectorAll('.size-btn').forEach(button => {
+                let size = button.getAttribute("data-size");
+                let key = `${selectedColor}-${size}`;
+                let stock = StockMap[key] || 0;
+
+                if (stock > 0) {
+                    button.style.display = "inline-block";
+                    button.disabled = false;
+                } else {
+                    button.style.display = "none";
+                    button.disabled = true;
+                }
+            });
+        }
+
+        function increaseQuantity() {
+            let quantityInput = document.getElementById("quantity");
+            let quantity = parseInt(quantityInput.value, 10);
+
+            if (selectedSize && quantity < currentStock) {
+                quantityInput.value = quantity + 1;
+            }
+        }
+
+        function decreaseQuantity() {
+            let quantityInput = document.getElementById("quantity");
+            let quantity = parseInt(quantityInput.value, 10);
+
+            if (quantity > 1) {
+                quantityInput.value = quantity - 1;
+            }
+        }
+
+        function addToCart(productId, productName, productType, productCategory, productPhoto, productPrice) {
+            var quantity = parseInt(document.getElementById("quantity").value);
+            var selectedSize = document.getElementById("selectedSize").value;
+            var selectedColor = document.getElementById("selectedColor").value;
+
+            if (!selectedColor || !selectedSize) {
+                Swal.fire("提示", "請選擇顏色和尺寸！", "warning");
+                return;
+            }
+
+            $.ajax({
+                url: '/AJAX/addToCart',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    PId: productId,
+                    PName: productName,
+                    PType: productType,
+                    PCategory: productCategory,
+                    PCount: quantity,
+                    PSize: selectedSize,
+                    PColor: selectedColor,
+                    CustomText0: "",
+                    CustomText1: "",
+                    CustomPhoto0: "",
+                    CustomPhoto1: "",
+                    Photo0: productPhoto,
+                    Photo1: "",
+                    PPrice: productPrice,
+                }),
+                success: function(response) {
+                     if (response === "請先登入會員") {
+                        Swal.fire("提示", response, "warning");
+                    } else if(response === "已加入購物車"){
+                        Swal.fire("成功", response, "success");
+                    } else {
+                        Swal.fire("錯誤", "操作發生錯誤，請稍後再試！", "error");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("加入購物車時發生錯誤: " + error);
+                    Swal.fire("錯誤", "加入購物車失敗，請稍後再試！", "error");
+                }
+            });
+        }
+
+    </script>
+}
+
+                  

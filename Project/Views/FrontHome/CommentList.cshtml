@@ -1,0 +1,79 @@
+﻿@model List<Project.ViewModel.CommentViewModel>
+@{
+    Layout = "~/Views/Shared/FrontMember_Layoutcshtml.cshtml";
+}
+
+@section Styles {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
+    <style>
+        .card:hover {
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-body {
+            position: relative;
+            justify-content: space-between;
+            font-size: 18px;
+        }
+    </style>
+}
+<h2 class="text-center my-4">我的評論列表</h2>
+
+<div class="container">
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 col-lg-3 mb-3">
+                <!-- 調整卡片的寬度 -->
+                <div class="card h-100">
+                    <div class="card-body">
+                       
+                        <a href="@Url.Action("ProductDetail", "Product" ,new { id = item.PID })">
+                            <h5 class="card-title">@item.PName</h5>
+                        </a>
+                        <p class="card-text">
+                            規格：@item.PColor／@item.PSize
+                        </p>
+                        <!-- 星星評價 -->
+                        <div class="rating mt-2">
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                if (i < item.Rating)
+                                {
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-star text-warning"></i>
+                                }
+                            }
+                        </div>
+                        <p class="card-text">@item.Comment</p>
+                        <p class="card-text">
+                            <small class="text-muted">評論時間：@item.ComCreateDate.ToString("yyyy-MM-dd HH:mm:ss")</small>
+                        </p>
+                    </div> 
+                    
+                    <div class="text-center mb-2">
+                        @if (!string.IsNullOrEmpty(item.ComImage1))
+                        {
+                            <a href="~/uploads/@item.ComImage1" data-lightbox="review-@item.ComID" data-title="Review Image 1">
+                                <img src="~/uploads/@item.ComImage1" alt="Review Image 1" class="img-thumbnail me-2" width="100" />
+                            </a>
+                        }
+                        @if (!string.IsNullOrEmpty(item.ComImage2))
+                        {
+                            <a href="~/uploads/@item.ComImage2" data-lightbox="review-@item.ComID" data-title="Review Image 2">
+                                <img src="~/uploads/@item.ComImage2" alt="Review Image 2" class="img-thumbnail me-2" width="100" />
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+@section Scripts
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+}

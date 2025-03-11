@@ -1,0 +1,165 @@
+﻿@model List<Project.Models.CMemberWrap>
+@* model IEnumerable<Project.Models.CMemberWrap> *@
+@{
+    ViewData["Title"] = "List";
+}
+@using (Html.BeginForm())
+{
+    @:關鍵字 @Html.TextBox("txtKeyword")
+    <input type="submit" value="查詢" />
+}
+
+<h2 class="mt-3">會員資料</h2>
+<p>
+    <a asp-action="Create" class="btn btn-warning">新增會員</a>
+    <a href="@Url.Action("BlacklistIndex", "Member")" class="btn btn-warning">黑名單</a>
+</p>
+<style>
+    .btn {
+        margin: 2px;
+        border-radius: 4px;
+    }
+
+    /* 如果你想讓按鈕並排顯示且對齊 */
+    td .btn {
+        display: inline-block;
+        width: auto;
+        min-width: 70px;
+    }
+    .table-wrapper {
+        width: 100%;
+        max-width: 100%;
+    }
+
+        .table-wrapper .table {
+            width: 100%;
+        }
+
+    /* 移除Bootstrap響應式表格的滾動行為 */
+    .table-responsive {
+        overflow-x: visible !important;
+    }
+    .table thead th {
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap; /* 防止文字換行 */
+    }
+
+    .table tbody td {
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap; /* 防止文字換行 */
+    }
+
+    /* 如果表格太寬，添加水平滾動條 */
+    .table-container {
+        overflow-x: auto;
+        width: 100%;
+    }
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+        <table class="table">
+        <thead>
+        <tr>
+            <th>
+               序
+            </th>
+            <th>
+               姓名
+            </th>
+            <th>
+                性別
+            </th>
+            <th>
+                帳號
+            </th>
+            <th>
+                電子郵件
+            </th>
+            <th>
+                地址
+            </th>
+            <th>
+                生日
+            </th>
+            <th>
+                電話
+            </th>
+            <th>
+                權限
+            </th>
+            <th>
+                創立日期
+            </th>
+            <th>
+                照片
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 0;
+            foreach (var item in Model) {
+                count++;
+        <tr>
+            <td>
+                @count
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.member.Mname)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.GenderText)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.member.Maccount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.member.Memail)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.member.Maddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.member.Mbirthday)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.member.Mphone)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.member.Mpermissions)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.member.McreatedDate)
+            </td>
+            <td>
+                 @if (!string.IsNullOrEmpty(item.member.Mphoto))
+
+                 {
+                    <img src="~/images/@item.member.Mphoto" height="80" width="90" />
+                 }
+               
+            </td>         
+            <td>
+                @Html.ActionLink("修改", "Edit", new { id = item.member.Mid }, new { @class = "btn btn-primary me-1" })
+                @Html.ActionLink("黑名單", "Blacklist", new { id = item.member.Mid }, 
+                new { @class = "btn btn-danger", onclick = "return confirm('確定要將此會員加入黑名單嗎?');" })
+            </td>
+            </tr>
+}}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<div class="text-end mt-3">
+    <a href="@Url.Action("List")" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> 返回列表
+    </a>
+</div>
+
+

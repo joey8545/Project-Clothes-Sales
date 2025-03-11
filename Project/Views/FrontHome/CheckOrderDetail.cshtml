@@ -1,0 +1,395 @@
+﻿@{
+    Layout = "~/Views/Shared/FrontMember_Layoutcshtml.cshtml";
+}
+
+
+<div id="app">
+    <div class="p-6">
+        <h3 class="text-xl font-bold mb-4">訂單明細</h3>
+        <div class="table-container">
+            <table class="w-full border-collapse border border-gray-300 text-sm">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border p-2 w-32">商品圖片</th>
+                        <th class="border p-2 w-40">商品名稱</th>
+                        <th class="border p-2 w-24">尺寸</th>
+                        <th class="border p-2 w-24">顏色</th>
+                        <th class="border p-2 w-16">數量</th>
+                        <th class="border p-2 w-32">處理狀態</th>
+                        <th class="border p-2 w-32">商品評論</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in orderItems" :key="item.Pid" class="text-center">
+                        <td class="border p-2">
+                            <div class="flex flex-col items-center product-images">
+                                <div :style="{ display: item.Pid === 0 ? 'block' : 'none' }">
+                                    <img :src="item.Photo0" class="w-20 h-20 object-cover border border-gray-300">
+                                </div>
+                                <div :style="{ display: item.Pid === 0 ? 'block' : 'none' }">
+                                    <img :src="item.Photo1" class="w-20 h-20 object-cover border border-gray-300 mt-2">
+                                </div>
+                                <img :style="{ display: item.Pid !== 0 ? 'block' : 'none' }" :src="`${baseAddress}/images/${item.Photo0}`" alt="商品圖1" class="w-20 h-20 object-cover border border-gray-300">
+                            </div>
+                        </td>
+                        <td class="border p-2">
+                            <a v-bind:href="'/Product/ProductDetail/' + item.Pid" class="text-dark">
+                                {{ item.PName }}
+                            </a>
+                        </td>
+                        <td class="border p-2">{{ item.PSize }}</td>
+                        <td class="border p-2">{{ item.PColor }}</td>
+                        <td class="border p-2">{{ item.PCount }}</td>
+                        <td class="border p-2">{{ item.OStatus }}</td>
+                        <td class="border p-2">
+                            <button v-if="item.OStatus === '已完成' && !item.isReviewed && item.Pid != 0"
+                                    @@click="openReviewModal(item)"
+                                    class="btn btn-outline-secondary">
+                                我要評論 <i class="fas fa-edit"></i>
+                            </button>
+
+                            <button v-else-if="item.OStatus === '已完成' && item.isReviewed && item.Pid != 0"
+                                    @@click="goToCommentList()"
+                                    class="btn btn-secondary">
+                                已評論 <i class="bi bi-chat-square-text"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="flex justify-start mb-4">
+                <a href="javascript:history.back()" class="back-button">
+                    ↩ 回上一頁
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reviewModalLabel">填寫評論 - {{ currentPName }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <span v-for="star in 5" :key="star" class="me-1" @@click="rating = star">
+                            <i :class="star <= rating ? 'bi bi-star-fill text-warning' : 'bi bi-star text-warning'"></i>
+                        </span>
+                    </div>
+                    <textarea v-model="reviewText" class="form-control"></textarea>
+                    <br>
+                    <div class="row">
+                        <h5 class="mb-1">請選擇圖片</h5>
+                        <div class="col-md-6">
+                            <input type="file" @@change="handleImageUpload($event, 1)" class="form-control">
+                            <img v-if="preview1" :src="preview1" alt="預覽圖片1" class="img-preview">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="file" @@change="handleImageUpload($event, 2)" class="form-control">
+                            <img v-if="preview2" :src="preview2" alt="預覽圖片2" class="img-preview">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @@click="submitReview">送出評論</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉視窗</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script type="text/javascript"
+            src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        var vueApp = {
+            data() {
+                return {
+                    orderId: "",
+                    orderItems: [],
+                    baseAddress: "https://localhost:7279",
+                    showReviewModal: false,
+                    currentPid: null,
+                    currentOid: null,
+                    currentPName: "",
+                    rating: 0,
+                    reviewText: "",
+                    image1: null,
+                    image2: null,
+                    preview1: null,
+                    preview2: null
+                };
+            },
+            methods: {
+                getOrderDetails: function () {
+                    let _this = this;
+                    let urlParams = new URLSearchParams(window.location.search);
+                    _this.orderId = urlParams.get("oid");
+
+                    if (!_this.orderId) {
+                            console.error("無效的訂單 ID");
+                        return;
+                    }
+
+                    axios.post(`${_this.baseAddress}/Ajax/GetOrderDetail`, { oid: _this.orderId })
+                        .then(response => {
+
+                            if (response.data) {
+                                _this.orderItems = response.data.map(od => ({
+                                    Pid: od.pId,
+                                    Photo0: od.photo0,
+                                    Photo1: od.photo1,
+                                    PName: od.pName,
+                                    PSize: od.pSize,
+                                    PColor: od.pColor,
+                                    PCount: od.pCount,
+                                    OStatus: od.ostatus,
+                                    isReviewed: od.isReviewed
+                                }));
+                                console.log(_this.orderItems);
+                            } else {
+                                console.error("查無訂單細項");
+                            }
+                        })
+                        .catch(err => {
+                                console.error("錯誤: ", err);
+                        });
+                },
+                openReviewModal(item) {
+                   console.log("打開評論 modal - item:", item);
+
+                    if (!item.Pid) {
+                    console.error("Pid 未定義", item);
+                    return;
+                    }
+
+                    this.currentPid = item.Pid;
+                    this.currentPSize = item.PSize;
+                    this.currentPColor = item.PColor;
+                    this.currentOid = this.orderId;
+                    this.currentPName = item.PName;
+                    this.reviewText = "";
+                    this.image1 = null;
+                    this.image2 = null;
+                    this.preview1 = null;
+                    this.preview2 = null;
+
+                    let modal = new bootstrap.Modal(document.getElementById("reviewModal"));
+                    modal.show();
+
+                },
+                handleImageUpload(event, index) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                    if (index === 1) {
+                        this.image1 = file;
+                        this.preview1 = e.target.result;
+                    }
+                    if (index === 2) {
+                        this.image2 = file;
+                        this.preview2 = e.target.result;
+                    }
+                    };
+                    reader.readAsDataURL(file);
+                },
+                submitReview() {
+                    let formData = new FormData();
+                    formData.append("oid", this.currentOid);
+                    formData.append("pid", this.currentPid);
+                    formData.append("psize", this.currentPSize);
+                    formData.append("pcolor", this.currentPColor);
+                    formData.append("rating", this.rating);
+                    formData.append("commentText", this.reviewText);
+                    if (this.image1) formData.append("image1", this.image1);
+                    if (this.image2) formData.append("image2", this.image2);
+
+                    console.log("提交評論的資料:", Object.fromEntries(formData));
+
+                    axios.post(`${this.baseAddress}/Ajax/AddComment`, formData, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                    }).then(response => {
+                    console.log("後端回應:", response.data);
+                    if (response.data.success) {
+                         Swal.fire("成功", "評論提交成功！", "success");
+
+                        this.image1 = null;
+                        this.image2 = null;
+                        this.preview1 = null;
+                        this.preview2 = null;
+                        this.reviewText = "";
+                        this.rating = 0;
+
+                    document.querySelectorAll('input[type="file"]').forEach(input => {
+                        input.value = "";
+                    });
+
+                    let item = this.orderItems.find(i => i.Pid === this.currentPid);
+                    if (item) item.isReviewed = true;
+
+                    let modal = bootstrap.Modal.getInstance(document.getElementById("reviewModal"));
+                         modal.hide();
+                    } else {
+                        alert(response.data.message);
+                    }
+                    }).catch(error => {
+                        console.error("提交評論時出錯: ", error);
+                    });
+                 },
+                goToCommentList() {
+                    axios.get(`${this.baseAddress}/Ajax/GetMemberId`)
+                        .then(response => {
+                        if (response.data.success) {
+                        let memberId = response.data.memberId;
+                        console.log("獲取到的 MemberId:", memberId);
+                        window.location.href = `https://localhost:7279/FrontHome/CommentList?memberId=${memberId}`;
+                        } else {
+                        console.error("未獲取會員 ID:", response.data.message);
+                        }
+                    })
+                    .catch(error => {
+                    console.error("獲取會員 ID 出錯:", error);
+                });
+            }
+            },
+            mounted() {
+                this.getOrderDetails();
+                let modalElement = document.getElementById("reviewModal");
+                modalElement.addEventListener("hidden.bs.modal", () => {
+                document.querySelectorAll('input[type="file"]').forEach(input => input.value = "");
+                this.image1 = null;
+                this.image2 = null;
+                this.preview1 = null;
+                this.preview2 = null;
+                this.reviewText = "";
+                this.rating = 0;
+                });
+            },
+            goBack() {
+                window.history.back();
+            }
+        };
+        Vue.createApp(vueApp).mount("#app");
+    </script>
+}
+
+@section Styles {
+    <style scoped>
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            table th, table td {
+                padding: 8px;
+                border: 1px solid #ccc;
+                text-align: center;
+            }
+
+
+                table th:nth-child(1), table td:nth-child(1) {
+                    width: 150px;
+                }
+
+                table th:nth-child(2), table td:nth-child(2) {
+                    width: 180px;
+                }
+
+                table th:nth-child(3), table td:nth-child(3) {
+                    width: 100px;
+                }
+
+                table th:nth-child(4), table td:nth-child(4) {
+                    width: 100px;
+                }
+
+                table th:nth-child(5), table td:nth-child(5) {
+                    width: 80px;
+                }
+
+                table th:nth-child(6), table td:nth-child(6) {
+                    width: 120px;
+                }
+
+                table th:nth-child(7), table td:nth-child(7) {
+                    width: 150px;
+                }
+
+
+        .product-images {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+            .product-images img {
+                width: 100px;
+                height: 100px;
+                object-fit: cover;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                margin-bottom: 5px;
+            }
+
+
+        .track-btn {
+            margin-left: 10px;
+            padding: 4px 8px;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            .track-btn:hover {
+                background-color: #1d4ed8;
+            }
+
+
+        .table-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .back-button {
+            position: absolute;
+            bottom: -40px;
+            right: 0;
+            background-color: white;
+            color: slateblue;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .back-button:hover {
+                color: darkblue;
+                transform: scale(1.05);
+            }
+            
+
+        .img-preview {
+            width: 200px;
+            height: auto;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+    </style>
+}

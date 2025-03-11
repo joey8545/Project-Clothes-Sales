@@ -1,0 +1,705 @@
+﻿﻿@{
+    Layout = "~/Views/Shared/Front_Layout.cshtml";
+}
+<div id="app">
+    <div class="container">
+        <div v-if="cartArray.length === 0" class="empty-cart-message">
+            <div class="cart-icon">🛒</div>
+            <p>購物車還沒有商品唷</p>
+            <a href="~/FrontHome/FrontIndex" class="shop-now-button">去逛逛</a>
+        </div>
+        <div v-else>
+            <h1 style="font-weight: bold;">我的購物車</h1>
+            <div class="check">
+                <div class="col-md-8 cart-items">
+                    <div v-for="(item, index) in cartArray" :key="item.PName" class="cart-header">
+                        <div class="close1" @@click="removeItem(index)"></div>
+                        <div class="cart-sec simpleCart_shelfItem">
+                            <div class="cart-item cyc">  
+                                <div class="cart-img-con1" :style="{ display: item.pId === 0 ? 'block' : 'none' }">
+                                    <img :src="item.photo0" class="img-responsive" alt="" />
+                                </div> 
+                                <div class="cart-img-con2" :style="{ display: item.pId === 0 ? 'block' : 'none' }">
+                                    <img :src="item.photo1" class="img-responsive" alt="" />
+                                </div>
+                                 
+                                <div class="cart-img-con1" :style="{ display: item.pId !== 0 ? 'block' : 'none' }">
+                                    <img :src="item.photo0 && item.photo0 !== '' ? `${baseAddress}/images/${item.photo0}` : '/images/no_image.jpg'" class="img-responsive" alt="" />
+                                </div>
+                                <div class="cart-img-con1" :style="{ display: item.pId !== 0 ? 'block' : 'none' }">
+                                    <img  class="img-responsive" alt="" />
+                                </div>
+                                
+                                <div class="cart-item-info">
+                                    <p></p>
+                                    <p> 
+                                        <a v-bind:href="item.pId > 0 ? '/Product/ProductDetail/' + item.pId : '/FrontHome/ChangeClothes'">
+                                            {{ item.pId === 0 ? item.pType : item.pName }}
+                                        </a>
+                                    </p> 
+                                    <h3>
+                                        {{ item.pCategory }}
+                                    </h3>
+                                    <ul class="qty">
+                                        <li><p>尺寸 : {{ item.pSize }}</p></li>
+                                    </ul>
+                                    <ul class="qty">
+                                        <li><p>顏色 : {{ item.pColor }}</p></li>
+                                    </ul>
+                                    <ul class="qty" :style="{ display: item.pId === 0 ? 'block' : 'none' }">
+                                        <li><p>文字(正面) : {{ item.customText0 }}</p></li>
+                                    </ul>
+                                    <ul class="qty" :style="{ display: item.pId === 0 ? 'block' : 'none' }">
+                                        <li><p>文字(背面) : {{ item.customText1 }}</p></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="num">
+                                <div class="quantity-controls">
+                                    <button @@click="updateQuantity(index, 'decrease')">-</button>
+                                    <input type="text" class="quantity" v-model="item.pCount" readonly />
+                                    <button @@click="updateQuantity(index, 'increase')">+</button>
+                                </div>
+                            </div>
+                            <div class="delivery">
+                                <p>NT$ {{ item.pPrice }}</p>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-1"></div>
+                <div class="col-md-3 cart-total">
+                    <div class="order-summary-container">
+                        <p></p>
+                        <a class="continue" href="~/FrontHome/FrontIndex">繼續購物</a>
+                        <div class="price-details">
+                            <h3>訂單資訊</h3>
+                            <span>合計</span>
+                            <span class="total1">NT$ {{ price }}</span>
+                            <span>折價券</span>
+                            <span class="total1">- NT$ {{ dcprice }}</span>
+                            <span>運費</span>
+                            <span class="total1">+NT$ 60</span>
+                            <div class="clearfix"></div>
+                        </div>
+                        <ul class="total_price">
+                            <li class="last_price"><h4>訂單總價</h4></li>
+                            <li class="last_price"><h4 style="text-align: right;"><strong>NT$ {{ totalprice }} </strong></h4></li>
+                        </ul>
+                        <br />
+                        <a class="order" v-on:click="fillAnOrder">前往結帳</a>
+                    </div>
+
+                    <div class="total-item">
+                        <h3 class="price-details">選擇折價券</h3>
+                        <h4>我的折價券</h4>
+                        <select v-model="selectedCouponId" @@change="confirmCoupon">
+                            <option value="" disabled selected>請選擇折價券</option>
+                            <option v-for="coupon in coupons" :key="coupon.id" :value="coupon.id">
+                                {{ coupon.couponName }} - 優惠{{ coupon.couponDiscount }}元
+                            </option>
+                        </select>
+                         
+                        <p v-if="!coupons.length">
+                            <a href="~/FrontHome/Coupon" target="_blank" style="font-weight: bold; color: hsla(224, 50%, 60%, 0.75);">>> 點我前往輸入折價券優惠碼</a>
+                        </p>
+                    </div> 
+                     
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script type="text/javascript"
+            src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+        var vueApp = {
+            data() {
+                return {
+                    baseAddress: "https://localhost:7279",
+                    cartArray: [],
+                    dcprice: 0,
+                    itemName: "",
+                    coupons: [],            
+                    selectedCouponId: null  
+                };
+            },
+            computed: {
+                price() {
+                    return this.cartArray.reduce((total, item) => {
+                        return total + (item.pPrice);
+                    }, 0);
+                },
+                totalprice() {
+                    return (this.price - this.dcprice + 60);
+                }
+            },
+            watch: { 
+                price(newPrice) {
+                    this.saveToStorage('price', newPrice);
+                },
+                dcprice(newDiscountPrice) {
+                    this.saveToStorage('dcprice', newDiscountPrice);
+                },
+                totalprice(newTotalPrice) {
+                    this.saveToStorage('totalprice', newTotalPrice);
+                }
+            },
+            methods: {
+                getCartItems: function () {
+                    let _this = this;
+                    axios.post(`${_this.baseAddress}/Ajax/GetCartItems`, {})
+                        .then(response => {
+                            console.log(response);
+                            const cartItems = Array.isArray(response.data) ? response.data : [];
+                            _this.cartArray = cartItems;
+                            _this.itemName = _this.cartArray.map(item => item.pName).join("#");
+                            if (!response.data) {
+                                swal("請先登入會員", { icon: "warning" });
+                            }
+                        })
+                        .catch(err => {
+                            console.error("取得購物車項目失敗", err);
+                        });
+                },
+                updateQuantity(index, action) {
+                    let _this = this;
+                    let item = _this.cartArray[index];
+
+                    if (action === "increase") {
+                        item.pCount++;
+                    } else if (action === "decrease" && item.pCount > 1) {
+                        item.pCount--;
+                    }
+
+                    axios.put(`${_this.baseAddress}/Ajax/UpdateCart`, {
+                        Id: item.id,
+                        PCount: item.pCount
+                    })
+                        .then(response => {
+                            if (response.data.newPrice !== undefined) {
+                                item.pPrice = response.data.newPrice;
+                            }
+                        })
+                        .catch(error => {
+                            console.error("更新數量失敗", error);
+                        });
+                },
+                removeItem(index) {
+                    let _this = this;
+                    let item = _this.cartArray[index];
+                    axios.delete(`${_this.baseAddress}/Ajax/DeleteItem/${item.id}`)
+                        .then(response => {
+                            swal("刪除成功", response.data, "success");
+                            _this.cartArray.splice(index, 1);
+                        })
+                        .catch(error => {
+                            console.error("刪除失敗", error);
+                        });
+                },
+                updateLocalStorage() {
+                    localStorage.setItem('cartItems', JSON.stringify(this.cartArray));
+                }, 
+                loadFromStorage() {
+                    const savedPrice = localStorage.getItem('price'); 
+                    const savedTotalPrice = localStorage.getItem('totalprice');
+
+                    if (savedPrice) {
+                        this.price = parseFloat(savedPrice);
+                    } 
+                    if (savedTotalPrice) {
+                        this.totalprice = parseFloat(savedTotalPrice);
+                    }
+                },
+                saveToStorage(key, value) {
+                    localStorage.setItem(key, value);
+                },
+                fillAnOrder() {
+                    let _this = this; 
+                    let totalAmount = _this.totalprice;
+                    let itemName = _this.itemName
+
+                    // 動態建立 `<form>`
+                    let form = document.createElement("form");
+                    form.method = "POST";
+                    form.action = "/FrontHome/CartToPay";
+
+                    // 加入 `TotalAmount`
+                    let totalInput = document.createElement("input");
+                    totalInput.type = "hidden";
+                    totalInput.name = "TotalAmount";
+                    totalInput.value = totalAmount;
+                    form.appendChild(totalInput);
+
+                    // 加入 `ItemName`
+                    let itemInput = document.createElement("input");
+                    itemInput.type = "hidden";
+                    itemInput.name = "ItemName";
+                    itemInput.value = itemName;
+                    form.appendChild(itemInput);
+
+                    // 把 `form` 加到 `body`，然後提交
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                getMemberCoupons() {
+                    let _this = this;
+                    axios.get(`${_this.baseAddress}/Ajax/GetMemberCoupons`)
+                        .then(response => { 
+                            _this.coupons = response.data; 
+                        })
+                        .catch(error => {
+                            console.error("取得折價券失敗:", error);
+                        });
+                },
+                confirmCoupon() {
+                    let _this = this; 
+                    let coupon = _this.coupons.find(c => c.id === _this.selectedCouponId);
+                    if (!coupon) return;
+
+                    swal({
+                        title: "確認使用優惠券？",
+                        text: `您確定要使用「${coupon.couponName}」優惠券，折扣 ${coupon.couponDiscount} 元嗎？`,
+                        icon: "info",
+                        buttons: true,
+                        dangerMode: false,
+                    }).then((willUse) => {
+                        if (willUse) {
+                            swal("已選擇優惠券！", {
+                                icon: "success",
+                            }); 
+                            _this.dcprice = coupon.couponDiscount;
+                            localStorage.setItem('couponId', this.selectedCouponId);
+                        } else { 
+                            _this.selectedCouponId = "";
+                            _this.dcprice = 0; 
+                        }
+                    });
+                }
+            },
+            mounted: function () {
+                this.dcprice = 0;
+                this.saveToStorage('dcprice', 0);
+                this.getCartItems();
+                this.loadFromStorage();
+                this.getMemberCoupons();
+                this.saveToStorage('couponId', ""); 
+            }
+        };
+        var app = Vue.createApp(vueApp).mount("#app");
+
+    </script>
+}
+
+@section Styles {
+    <link href="https://fonts.googleapis.com/css2?family=Cactus+Classical+Serif&family=LXGW+WenKai+TC&family=Liu+Jian+Mao+Cao&family=Long+Cang&family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+    <style>
+        .cart-sec {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1.5px dashed #ddd;
+            padding-bottom: 5px;
+            flex-wrap: nowrap;
+            overflow: hidden;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-img-con1,
+        .cart-img-con2 {
+            width: 22.5%;
+            padding: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+            .cart-img-con1 img,
+            .cart-img-con2 img {
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+            }
+
+
+        .cart-item-info {
+            width: 55%;
+            padding-right: 15px;
+            padding-left: 15px;
+            padding-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .num {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 15%;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            margin: 15px;
+        }
+
+            .quantity-controls button {
+                padding: 5px 10px;
+                font-size: 22px;
+                margin: 0 5px;
+                cursor: pointer;
+                border: none;
+                outline: none;
+                background-color: transparent;
+            }
+
+            .quantity-controls input.quantity {
+                width: 40px;
+                text-align: center;
+                padding: 5px;
+                font-size: 16px;
+            }
+
+        .delivery {
+            width: 15%;
+            padding-left: 15px;
+        }
+
+        .cart-item-info,
+        .delivery {
+            display: inline-block;
+            vertical-align: top;
+            box-sizing: border-box;
+        }
+
+        .check {
+            padding: 2em 0 4em 0;
+            display: flex;
+        }
+
+        .cart-item-info h2 {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .cart-item-info p {
+            color: #000;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .cart-item-info h3 {
+            display: block;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 0.7em 0;
+        }
+
+        .size_3 {
+            width: 100%;
+        }
+
+        .delivery {
+            width: 15%;
+            padding-left: 15px;
+        }
+
+            .delivery p {
+                font-size: 16px;
+                font-weight: bold;
+                margin-top: 24.5px;
+                margin-bottom: 10px;
+                text-align: left;
+            }
+
+        .cart-item-info h4 span {
+            font-size: 0.65em;
+            font-weight: 400;
+        }
+
+        .close1,
+        .close2 {
+            font-size: 1.5em;
+            color: #000;
+            cursor: pointer;
+            position: absolute;
+            right: 0px;
+            top: 0px;
+            transition: color 0.2s ease-in-out;
+        }
+
+            .close1:before,
+            .close2:before {
+                content: "\f00d"; /* Font Awesome 'x' icon */
+                font-family: "Font Awesome 5 Free";
+                font-weight: 900;
+                font-size: 1em;
+            }
+
+        .cart-header {
+            position: relative;
+            margin: 5px;
+        }
+
+        .cart-header2 {
+            position: relative;
+        }
+
+        a.order {
+            background: hsla(224, 50%, 60%, 0.75);
+            padding: 10px 20px;
+            font-family: "Lato", sans-serif;
+            font-size: 1em;
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            font-weight: 600;
+            text-align: center;
+            margin: 3em 0;
+        }
+
+            a.order:hover {
+                background: #000;
+            }
+
+        .order-summary-container {
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .total-item,
+        .cart-items {
+            margin-top: 0em;
+            padding-bottom: 2em;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            width: 60%;
+        }
+
+        .total1 {
+            text-align: right;
+        }
+
+        .total-item {
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+
+            .total-item select {
+                width: 100%;
+                padding: 5px; 
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+
+            .total-item h3 {
+                color: #333;
+                font-size: 1.4em;
+                margin-bottom: 0.5em;
+            }
+
+            .total-item h4 {
+                font-size: 16px;
+                margin-top: 0px; 
+                margin-bottom: 10px;
+            }
+
+        a.cpns {
+            background: hsla(224, 50%, 60%, 0.75);
+            color: #fff;
+            font-family: "Lato", sans-serif;
+            padding: 10px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+            a.cpns:hover {
+                background: #000;
+            }
+
+        .total-item p {
+            font-size: 0.9em;
+            font-weight: 400;
+            margin-top: 1em;
+        }
+
+            .total-item p a {
+                color: #727272;
+            }
+
+                .total-item p a:hover {
+                    color: #000;
+                    text-decoration: underline;
+                }
+
+        a.continue {
+            background: hsla(224, 50%, 60%, 0.75);
+            padding: 10px 20px;
+            font-family: "Lato", sans-serif;
+            font-size: 1em;
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 2em;
+        }
+
+            a.continue:hover {
+                background: #000;
+            }
+
+        ul.total_price {
+            padding: 0;
+            margin: 1em 0 0 0;
+            list-style: none;
+        }
+
+            ul.total_price li.last_price {
+                width: 50%;
+                float: left;
+            }
+
+                ul.total_price li.last_price span {
+                    font-size: 1.6em;
+                    color: #000;
+                }
+
+        .price-details {
+            border-bottom: 1px solid #ddd9d9;
+            padding-bottom: 10px;
+        }
+
+            .price-details h3 {
+                color: #000;
+                font-size: 1.4em;
+                margin-bottom: 1em;
+            }
+
+            .price-details span {
+                width: 50%;
+                float: left;
+                font-size: 1em;
+                color: #000;
+                line-height: 2em;
+            }
+
+        h1 {
+            font-size: 1.5em;
+            margin-top: 2em;
+            margin-bottom: 0.5em;
+            font-family: "Lato", sans-serif;
+            text-align: left;
+        }
+
+            h1::after {
+                content: "";
+                display: block;
+                width: 68%;
+                height: 2px;
+                background-color: #ddd;
+                margin-left: 0;
+                margin-top: 10px;
+            }
+
+        a.item_add1 {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            padding: 10px 15px;
+            background: url(0) #7d4df5;
+        }
+
+            a.item_add1:hover {
+                background: rgb(3, 193, 167);
+                text-decoration: none;
+                color: #fff;
+            }
+
+        .btn_5 {
+            padding: 25px 40px;
+            font-size: 1.1em;
+        }
+
+        ul.qty {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+            ul.qty li {
+                display: inline-block;
+                margin-right: 5%;
+                margin-bottom: 5px;
+            }
+
+                ul.qty li p {
+                    font-size: 12px;
+                    color: #555;
+                    margin: 0;
+                }
+
+        .empty-cart-message {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .cart-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .empty-cart-message p {
+            font-weight: bold;
+            font-size: 24px;
+            color: #ff6600;
+        }
+
+        .shop-now-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #ff6600;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+            .shop-now-button:hover {
+                background-color: #e65c00;
+            }
+
+            .shop-now-button:focus {
+                outline: none;
+            }
+
+    </style>
+}

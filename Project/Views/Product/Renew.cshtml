@@ -1,0 +1,120 @@
+﻿@model List<Project.Models.CProductWrap> 
+
+@section Styles {
+    <style>
+        .custom-btn {
+            border: none; /* 預設無邊框 */
+            background-color: none;
+            color: dimgray;
+        }
+
+        .custom-btn:hover {
+            background-color: #808080; /* 顏色稍微變深 */
+            color: white;
+        }
+
+    </style>
+}
+
+<!-- 麵包屑 -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="~/Home/Index" class="text-decoration-none">首頁</a></li>
+        <li class="breadcrumb-item"><a href="~/Product/List" class="text-decoration-none">商品列表</a></li>
+        <li class="breadcrumb-item active" aria-current="page">未上架商品</li>
+    </ol>
+</nav>
+<h4>下架商品列表</h4>
+<hr />
+<div class="d-flex align-items-center my-2">
+    <form class="d-flex me-5 form-search input-search" method="get" action="@Url.Action("Renew","Product")">
+        <input class="form-control me-2 index-search"
+               type="search"
+               placeholder="請輸入商品關鍵字"
+               aria-label="Search"
+               name="keyword"
+               autocomplete="off" />
+        <button class="btn btn-outline-secondary btn-search" type="submit">
+            <div><i class="bi bi-search"></i></div>
+        </button>
+    </form>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>序</th>
+            <th>圖片</th>
+            <th>商品名稱</th>
+            <th>價格</th>
+            <th>類型</th>
+            <th>分類</th>
+            <th>商品描述</th>
+            <th>總庫存</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 0;
+        }
+        @foreach (var item in Model)
+        {
+            count++;
+            <tr class="align-middle">
+                <td>@count</td>
+                <td>
+                    <img src="~/images/@item.Pphoto" height="80" width="70" class="rounded" />
+                </td>
+                <td>@Html.DisplayFor(modelItem => item.Pname)</td>
+                <td>@Html.DisplayFor(modelItem => item.Pprice)</td>
+                <td>@Html.DisplayFor(modelItem => item.Ptype)</td>
+                <td>@Html.DisplayFor(modelItem => item.Pcategory)</td>
+                <td>@Html.DisplayFor(modelItem => item.Pdescription)</td>
+                <td>@Html.DisplayFor(modelItem => item.Pinventory)</td>
+                <td>
+                    @Html.ActionLink("修改商品資訊", "Edit", new { id = item.Pid }, new { @class = "btn custom-btn btn-sm" })
+                    <a href="#" class="btn custom-btn btn-sm" onclick="confirmRecovery(@item.Pid)">商品上架</a>
+                    <br /><br />
+                    <a href="#" class="btn custom-btn btn-sm" onclick="confirmDelete(@item.Pid)">刪除商品</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@section Scripts {
+    <script>
+         function confirmRecovery(productId) {
+            Swal.fire({
+                title: "確定要上架商品嗎?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "確定",
+                cancelButtonText: "取消"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '@Url.Action("Recovery", "Product")' + '?id=' + productId;
+                }
+            });
+        }
+
+        function confirmDelete(productId) {
+            Swal.fire({
+                title: "確定要刪除商品嗎?",
+                text: "此操作無法恢復，刪除後將無法找回該商品!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "刪除",
+                cancelButtonText: "取消"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '@Url.Action("Delete", "Product")' + '?id=' + productId;
+                }
+            });
+        }
+    </script>
+}

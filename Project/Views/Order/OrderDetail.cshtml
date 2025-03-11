@@ -1,0 +1,122 @@
+﻿@model List<Project.Models.COrderDetailWarp>
+
+@{
+    ViewBag.Title = "Order Detail";
+}
+
+<style>
+    .container, .container-lg, .container-md, .container-sm, .container-xl {
+        max-width: 95% !important;
+    }
+
+    .table th, .table td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+        .table td img {
+            width: 100px;  
+            height: 100px; 
+            object-fit: cover;  
+            border-radius: 5px;
+        }
+
+        .table td:first-child {
+            width: 160px;  
+        }
+</style>
+
+<h2>訂單明細</h2>
+<h4>訂單編號：@Model.First().Oid</h4>
+
+<div class="table-responsive">
+    <table class="table table-bordered">
+        @foreach (var item in Model)
+            {
+        <thead class="thead-dark">
+            <tr>
+                <th>商品圖</th>
+                <th>商品名稱</th>
+                <th>數量</th>
+                <th>尺寸</th>
+                <th>顏色</th>
+                <th>價格</th>
+                <th>客製化文字(正)</th>
+                <th>客製化文字(反)</th>
+                <th>客製化圖片(正)</th>
+                <th>客製化圖片(反)</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>
+                        @if (item.Pid == 0)
+                        { 
+                            @if (!string.IsNullOrEmpty(item.Photo0))
+                            {
+                                <img src="@item.Photo0" alt="商品圖片1" width="50" height="50">
+                            }
+                            <br />
+                            @if (!string.IsNullOrEmpty(item.Photo1))
+                            {
+                                <img src="@item.Photo1" alt="商品圖片2" width="50" height="50">
+                            }
+                        }
+                        else
+                        { 
+                            @if (!string.IsNullOrEmpty(item.Photo0))
+                            {
+                                <img src="@Url.Content("~/images/" + item.Photo0)" alt="商品圖片1" width="50" height="50">
+                            }
+                            else
+                            {
+                                <img src="@Url.Content("~/images/no_image.jpg")" alt="無圖片" width="50" height="50">
+                            }
+                        }
+                    </td> 
+                    <td>@item.Pname</td>
+                    <td>@item.Pcount</td>
+                    <td>@item.Psize</td>
+                    <td>@item.Pcolor</td>
+                    <td>@item.Pprice.ToString("#,0")</td>
+                    <td>@item.CustomText0</td>
+                    <td>@item.CustomText1</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.CustomPhoto0))
+                        {
+                            <img src="@item.CustomPhoto0" width="50" height="50">
+                        }
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.CustomPhoto1))
+                        {
+                            <img src="@item.CustomPhoto1" width="50" height="50">
+                        }
+                    </td>
+                </tr> 
+                <tr class="return-info">
+                    <td colspan="10" style="text-align: left;">
+                        <strong style="color: #9E4A3B;">退換貨方式：</strong>@item.Rmethod &nbsp;
+                        <strong style="color: #9E4A3B;"> 退換貨數量：</strong>@item.Rqty &nbsp;
+                        <strong style="color: #9E4A3B;"> 退換貨原因：</strong>@item.Rreason &nbsp;
+                        <strong style="color: #9E4A3B;"> 其他原因：</strong>@item.RotherReason &nbsp;
+                    </td>
+                </tr>
+                <tr class="return-info">
+                    <td colspan="10" style="text-align: left;">
+                        <strong style="color: #9E4A3B;"> 收件人姓名：</strong>@item.Rname &nbsp;
+                        <strong style="color: #9E4A3B;"> 電話：</strong>@item.Rphone &nbsp;
+                        <strong style="color: #9E4A3B;"> 地址：</strong>@item.Raddress &nbsp;
+                        <strong style="color: #9E4A3B;"> 備註：</strong>@item.Rdescription &nbsp;
+                    </td>
+                </tr>
+                <tr class="empty-row" style="border-left: 1px solid #e0f7fa; border-right: 1px solid #e0f7fa; height: 40px;">
+                    <td colspan="10" style="background-color: #f6f9ff;"></td>
+                </tr>  
+            </tbody>
+        }
+    </table>
+</div>
+
+<a asp-action="List" class="btn btn-secondary">返回訂單列表</a>

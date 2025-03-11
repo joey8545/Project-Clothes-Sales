@@ -1,0 +1,379 @@
+﻿@using System.Text.Json
+@{
+    Layout = "~/Views/Shared/Front_Layout.cshtml";
+    ViewBag.IsFullWidth = true;
+}
+@section styles{
+    <link rel="stylesheet" href="~/css/FrontIndexstyle.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.css" integrity="sha512-yHknP1/AwR+yx26cB1y0cjvQUMvEa2PFzt1c9LlS4pRQ5NOTZFWbhBig+X9G9eYW/8m0/4OXNx8pxJ6z57x0dw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.min.css" integrity="sha512-17EgCFERpgZKcm0j0fEq1YCJuyAWdz9KUtv1EjVuaOz8pDnh/0nZxmU6BBXwaaxqoi9PQXnRWqlcDB027hgv9A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+   <style>
+        .TopSales:hover{
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+        .TopSales{
+            position: relative;
+            border: 1px solid #F2F2F2;
+        }
+
+        .TopSalesTitle{
+            margin:20px 0;
+            text-align:center;
+        }
+        .favorite {
+            font-size:20px;
+            position:absolute;
+            top:8px;
+            right:8px;
+            color:gray !important;
+        }
+
+        .bi-heart-fill{
+            color:indianred !important;
+        }
+        .photoRadius{
+            border-radius:8px;
+        }
+        .Set img,
+        .News img{
+            height:100%;
+            width: auto;
+        }
+        .News{
+            width: 100%;
+            overflow-x: hidden;
+        }
+        .Set{
+            height: 400px;
+        }
+        .relativeBox{
+            position:relative;
+            overflow:hidden;
+            width:100%;
+            height:400px;
+        }
+
+        .relativeBox img {
+            position: relative;
+            width: 100%;
+            transition: transform 0.3s ease; 
+            object-position: center center;
+            object-fit: cover;
+        }
+
+        .relativeBox:hover img {
+            transform: scale(1.1) ; 
+        }
+        .centerWord{
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform: translate(-50%,-50%);
+            color:white;
+            font-weight:bolder;
+            font-size:30px;
+            text-shadow:3px 3px 5px black;
+            text-align:center;
+        }
+   </style>
+} 
+<div id="app">
+    <!-- Slick Carousel-->
+    <div class="section text-center">
+        <!-- Slick Carousel-->
+        <div class="slick-wrap">
+            <div class="slick-slider slick-style-1"
+                 data-arrows="true"
+                 data-autoplay="true"
+                 data-loop="true"
+                 data-dots="true"
+                 data-swipe="true"
+                 data-xs-swipe="true"
+                 data-sm-swipe="false"
+                 data-items="1"
+                 data-sm-items="3"
+                 data-md-items="3"
+                 data-lg-items="3"
+                 data-center-mode="true"
+                 data-lightgallery="group-slick">
+                <div class="item">
+                    <div class="slick-slide-inner">
+                        <div class="slick-slide-caption">
+                            <a class="thumb-ann"
+                               href="~/FrontHome/ChangeClothes"
+                               >
+                                <img 
+                                     src="~/Images/title1.jpg"
+                                     alt=""
+                                     width="100%" />
+                                <div class="thumb-ann__caption">
+                                    <p class="thumb-ann__title heading-3">長刷毛熊熊耳朵造型連帽外套</p>
+                                    <p class="thumb-ann__text">
+                                        柔軟舒適．長刷毛系列，男/女/童/BABY款 溫暖特惠
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="slick-slide-inner">
+                        <div class="slick-slide-caption">
+                            <a class="thumb-ann"
+                               href="@Url.Action("ProductList", "Product")">
+                                <img 
+                                     src="~/Images/title2.jpg"
+                                     alt="#"
+                                     width="100%" />
+                                <div class="thumb-ann__caption">
+                                    <p class="thumb-ann__title heading-3">鋪棉毛絨翻領寬版外套</p>
+                                    <p class="thumb-ann__text">
+                                        提升視覺層次感．鋪棉防風保暖
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="slick-slide-inner">
+                        <div class="slick-slide-caption">
+                            <a class="thumb-ann"
+                               href="@Url.Action("ProductList", "Product")">
+                                <img 
+                                     src="~/Images/title3.jpg"
+                                     alt=""
+                                     width="100%" />
+                                <div class="thumb-ann__caption">
+                                    <p class="thumb-ann__title heading-3">條紋翻領針織衫</p>
+                                    <p class="thumb-ann__text">
+                                        春夏新品搶看，簡約舒適新上市
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="slick-slide-inner">
+                        <div class="slick-slide-caption">
+                            <a class="thumb-ann"
+                               href="@Url.Action("ProductList", "Product")">
+                                <img 
+                                     src="~/Images/title4.jpg"
+                                     alt=""
+                                     width="100%" />
+                                <div class="thumb-ann__caption">
+                                    <p class="thumb-ann__title heading-3">長刷毛外套</p>
+                                    <p class="thumb-ann__text">
+                                        柔軟舒適．長刷毛系列，男/女/童/BABY款 溫暖上市
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--最新優惠-->
+    <div class="mt-5 News">
+            <div class="row">
+                <div class="col-6 d-flex justify-content-center">
+                    <a href="@Url.Action("ProductList", "Product")">
+                        <img src="~/Images/Carousel1.jpg" class="photoRadius"/>
+                    </a>
+                </div>
+                <div class="col-6 d-flex justify-content-center">
+                    <a href="@Url.Action("ProductList", "Product")">
+                        <img src="~/Images/Carousel2.jpg" class="photoRadius"/>
+                    </a>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-6 d-flex justify-content-center">
+                    <a href="@Url.Action("ProductList", "Product")">
+                        <img src="~/Images/Carousel3.jpg" class="photoRadius"/>
+                    </a>
+                </div>
+                <div class="col-6 d-flex justify-content-center">
+                    <a href="@Url.Action("ProductList", "Product")">
+                    <img src="~/Images/Carousel4.jpg" class="photoRadius" />
+                    </a>
+                </div>
+            </div>
+    </div>
+    <div class="mt-5 py-3" style="background-color:#FBFBFB;">
+        <!--人氣商品-->
+        <div class="container">
+            <div class="mt-1">
+                <h3 class="TopSalesTitle">︱人氣商品︱</h3>
+                <div class="row">
+                    <div class="col-6 col-lg-3 mt-2" v-for="item in Top4Sales">
+                        <div class="TopSales">
+                            <a v-bind:href="'/Product/Productdetail/' + item.pid" class="text-decoration-none">
+                                <i v-bind:class="item.isFavorite? 'bi bi-heart-fill':'bi bi-heart'" class="favorite" v-on:click.prevent="Favorite(item)"></i>
+                                <img v-bind:src="'/Images/'+ item.pphoto" class="w-100" />
+                                <div style="background-color:white;">
+                                    <div class="pt-2 fw-bold ps-2" style="color:dimgray">{{item.pname}}</div>
+                                    <div class="fw-bold mt-1 ps-2 pb-2" style="color:black">NT$ {{item.pprice}}</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--新品上市-->
+        <div class="container mb-5">
+            <div class="mt-5">
+                <h3 class="TopSalesTitle">︱新品上市︱</h3>
+                <div class="row">
+                    <div class="col-6 col-lg-3 mt-2" v-for="item in New4Sales">
+                        <div class="TopSales">
+                            <a v-bind:href="'/Product/Productdetail/' + item.pid" class="text-decoration-none">
+                                <i v-bind:class="item.isFavorite? 'bi bi-heart-fill':'bi bi-heart'" class="favorite" v-on:click.prevent="Favorite(item)"></i>
+                                <img v-bind:src="'/Images/'+ item.pphoto" class="w-100" />
+                                <div style="background-color:white;">
+                                    <div class="pt-2 fw-bold ps-2" style="color:dimgray">{{item.pname}}</div>
+                                    <div class="fw-bold mt-1 ps-2 pb-2" style="color:black">NT$ {{item.pprice}}</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="mt-5 text-secondary text-end" style="letter-spacing:3px">| 多 款 穿 搭 組 合</h2>
+    <div class="mt-4 mb-5">
+        <div class="d-flex Set">
+            <a href="@Url.Action("StyleList", "Style", new { category = "女性穿搭" })" class="relativeBox">
+                 <img src="~/Images/Set1.jpg"/>
+                 <span class="centerWord">Women's Wear</span>
+             </a>
+            <a href="@Url.Action("StyleList", "Style", new { category = "男性穿搭" })" class="relativeBox">
+                <img src="~/Images/Set2.jpg" />
+                <span class="centerWord">Men's Wear</span>
+            </a>
+            <a href="@Url.Action("StyleList", "Style", new { category = "兒童穿搭" })" class="relativeBox">
+                <img src="~/Images/Set3.jpg" />
+                <span class="centerWord">Kid's Wear</span>
+            </a>
+            <a href="@Url.Action("StyleList", "Style", new { category = "工作穿搭" })" class="relativeBox">
+                <img src="~/Images/Set4.jpg" />
+                <span class="centerWord">Work Outfit</span>
+            </a>
+         </div> 
+    </div>
+</div>
+    
+
+
+@section Scripts{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js" integrity="sha512-HGOnQO9+SP1V92SrtZfjqxxtLmVzqZpjFFekvzZVWoiASSQgSr4cw9Kqd2+l8Llp4Gm0G8GIFJ4ddwZilcdb8A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="~/js/FrontIndexcore.min.js"></script>
+    <script src="~/js/FrontIndexscript.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script type="text/javascript"
+            src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        var vueApp = {
+            data() {
+                return {
+                    baseAddress: "https://localhost:7279",
+                    Top4Sales:[],
+                    New4Sales: [],
+                    favoriteList: [],
+                }
+            },
+            methods: {
+                Favorite: function (item) { 
+                    let _this = this;
+                    let request = {
+                        PId: item.pid,
+                        PName: item.pname,
+                        PPhoto: item.pphoto,
+                        PPrice: item.pprice
+                    };
+                    axios.post(`${_this.baseAddress}/Ajax/PostFavorite`, request).then(response => {
+                        if (response.data === "請先登入會員") {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '請先登入會員',
+                                showConfirmButton: true,
+                                footer: '<a href="' + '@Url.Action("fcreate", "FrontMember")' + '" style="color:blue">前往登入</a>'
+                            });
+                            return; 
+                        }
+
+                        _this.GetFavoriteID();
+                    }).catch(err => {
+
+                    });
+                },
+                GetFavoriteID: function () { 
+                    let _this = this;
+                    axios.get(`${_this.baseAddress}/Ajax/GetFavoriteID`).then(response => { 
+                        _this.favoriteList = response.data;
+                        _this.New4Sales.forEach(item => {
+                            item.isFavorite = _this.favoriteList.includes(item.pid);
+                        })
+                        _this.Top4Sales.forEach(item => {
+                            item.isFavorite = _this.favoriteList.includes(item.pid);
+                        })
+                    }).catch(err => { 
+
+                    })
+                },
+                GetTop4Sales: function () {
+                    let _this = this;
+                    axios.get(`${_this.baseAddress}/Ajax/Top4Sales`).then(response => {
+                        _this.Top4Sales = response.data;
+                        _this.GetFavoriteID();
+                    }).catch(err => {
+
+                    })
+                },
+                GetNew4Sales: function () {
+                    let _this = this;
+                    axios.get(`${_this.baseAddress}/Ajax/New4Sales`).then(response => {
+                        _this.New4Sales = response.data;
+                        _this.GetFavoriteID();
+                    }).catch(err => { 
+
+                    })
+                }
+            },
+            mounted() {
+                this.GetNew4Sales();
+                this.GetTop4Sales();
+                this.$nextTick(() => {
+                    try {
+                        $('.slick-slider').slick({
+                            arrows: true,
+                            autoplay: false,
+                            dots: true,
+                            swipe: true,
+                            centerMode: true,
+                            slidesToShow: 3,
+                            responsive: [
+                                {
+                                    breakpoint: 768,
+                                    settings: {
+                                        slidesToShow: 1,
+                                    }
+                                }
+                            ]
+                        });
+                    } catch (e) {
+                        console.error("Slick Carousel 初始化失敗：", e);
+                    }
+                });
+            }
+        };
+        var app = Vue.createApp(vueApp).mount("#app");
+    </script>
+}

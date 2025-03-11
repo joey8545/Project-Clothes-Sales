@@ -1,0 +1,164 @@
+﻿@model IEnumerable<Project.Models.OrderWrap>
+
+@{
+    ViewData["Title"] = "List";
+}
+
+<style> 
+        th:nth-child(1), td:nth-child(1) { width: 7%; }
+        th:nth-child(2), td:nth-child(2) { width: 9%; }
+        th:nth-child(3), td:nth-child(3) { width: 7%; }
+        th:nth-child(4), td:nth-child(4) { width: 9%; }
+        th:nth-child(5), td:nth-child(5) { width: 7%; }
+        th:nth-child(6), td:nth-child(6) { width: 9%; }
+        th:nth-child(7), td:nth-child(7) { width: 8%; }
+        th:nth-child(8), td:nth-child(8) { width: 7%; }
+        th:nth-child(9), td:nth-child(9) { width: 8%; }
+        th:nth-child(10), td:nth-child(10) { width: 7%; }
+        th:nth-child(11), td:nth-child(11) { width: 8%; }
+</style>
+
+<h1>訂單管理</h1>
+
+<div>
+    <a href="@Url.Action("List", "Order", new { status = "All" })" class="btn btn-light text-dark me-3">全部訂單</a>
+    <a href="@Url.Action("List", "Order", new { status = "待出貨" })" class="btn btn-light text-dark me-3">待出貨</a>
+    <a href="@Url.Action("List", "Order", new { status = "運送中" })" class="btn btn-light text-dark me-3">運送中</a>
+    <a href="@Url.Action("List", "Order", new { status = "已完成" })" class="btn btn-light text-dark me-3">已完成</a>
+    <a href="@Url.Action("List", "Order", new { status = "退貨" })" class="btn btn-light text-dark me-3">退貨</a>
+    <a href="@Url.Action("List", "Order", new { status = "付款完成" })" class="btn btn-light text-dark me-3">付款完成</a>
+    <a href="@Url.Action("List", "Order", new { status = "尚未付款" })" class="btn btn-light text-dark me-3">尚未付款</a>
+</div>
+<br />
+
+@using (Html.BeginForm("List", "Order", FormMethod.Get))
+{
+    <div class="d-flex align-items-center">
+
+        @Html.TextBox("txtKeyword", null, new { @class = "form-control", placeholder = "輸入訂購人名稱", style = "height: 35px; width: 94%;" })
+        <input type="submit" value="查詢" class="btn btn-primary ms-2" style="height: 35px;" />
+    </div>
+}
+<br />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Oid)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Oname)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Oprice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Odiscountedprice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OtotalPrice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Odate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Ostatus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Opayment)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OcancelStatus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OreturnStatus)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Oid)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Oname)
+                </td>
+                <td>
+                    @item.Oprice.ToString("#,0")
+                </td>
+                <td>
+                    @(item.Odiscountedprice.HasValue ? item.Odiscountedprice.Value.ToString("#,0") : "0")
+                </td>
+                <td>
+                    @item.OtotalPrice.ToString("#,0")
+                </td>
+                <td>
+                    @item.Odate.ToString("yyyy/MM/dd HH:mm:ss")
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Ostatus)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Opayment)
+                </td>
+                <td>
+                    @if (item.OcancelStatus == "未取消")
+                    {
+                        <span>---------</span> 
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(modelItem => item.OcancelStatus)
+                    }
+                </td>
+                <td>
+                    @if (item.OreturnStatus != "申請中" && item.OreturnStatus != "申請逾時")
+                    {
+                        <span>---------</span> 
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(modelItem => item.OreturnStatus)
+                    }
+                </td>
+                <td>
+                    <div style="display: block;">
+                        @Html.ActionLink("修改訂單", "Edit", new { id = item.Oid })
+                    </div>
+                    <div style="display: block;">
+                        @Html.ActionLink("細節查看", "OrderDetail", new { id = item.Oid })
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="d-flex justify-content-center">
+    <ul class="pagination">
+        @if (ViewBag.Page > 1)
+        {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("List", new { page = ViewBag.Page - 1, status = ViewBag.Status, txtKeyword = ViewBag.Keyword })">上一頁</a>
+                </li>
+        }
+
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+                <li class="page-item @(i == ViewBag.Page ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("List", new { page = i, status = ViewBag.Status, txtKeyword = ViewBag.Keyword })">@i</a>
+                </li>
+        }
+
+        @if (ViewBag.Page < ViewBag.TotalPages)
+        {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("List", new { page = ViewBag.Page + 1, status = ViewBag.Status, txtKeyword = ViewBag.Keyword })">下一頁</a>
+                </li>
+        }
+    </ul>
+</div>

@@ -1,0 +1,83 @@
+﻿@model IEnumerable<Project.Models.Torder>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Oname)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Odiscountedprice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OtotalPrice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Odate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Mid)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Oaddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Ophone)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Ostatus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Opayment)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Oname)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Odiscountedprice)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.OtotalPrice)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Odate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Mid)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Oaddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Ophone)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Ostatus)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Opayment)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Oid">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Oid">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Oid">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

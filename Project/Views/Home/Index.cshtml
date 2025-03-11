@@ -1,0 +1,943 @@
+﻿@using System.Text.Json
+@model Project.ViewModel.IndexViewModel
+@{
+	ViewData["Title"] = "Home Page";
+}
+
+
+<section class="section dashboard">
+	<div class="row">
+
+		<!-- Left side columns -->
+		<div class="col-lg-8">
+			<div class="row">
+
+				<!-- 訂單 -->
+				<div class="col-xxl-4 col-md-6">
+					<div class="card info-card sales-card">
+
+						<div class="filter">
+							<a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+							<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" id="Sales_List">
+								<li class="dropdown-header text-start">
+									<h6>篩選</h6>
+								</li>
+								<li><a class="dropdown-item" href="#">今天</a></li>
+								<li><a class="dropdown-item" href="#">這個月</a></li>
+								<li><a class="dropdown-item" href="#">今年</a></li>
+							</ul>
+						</div>
+
+						<div class="card-body">
+							<h5 class="card-title fw-bold fs-5">訂單 <span id="Sales_Date">| 今天</span></h5>
+
+							<div class="d-flex align-items-center">
+								<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+									<i class="bi bi-cart"></i>
+								</div>
+								<div class="ps-3">
+									<h6 id="Sales"></h6>
+									<span class="text-success small pt-1 fw-bold" id="Sales_Percentage"></span> <span class="text-muted small pt-2 ps-1" id="Sales_Compare"></span>
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div><!-- End 訂單 -->
+				<!-- 收入 -->
+				<div class="col-xxl-4 col-md-6">
+					<div class="card info-card revenue-card">
+
+						<div class="filter">
+							<a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+							<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" id="Revenue_List">
+								<li class="dropdown-header text-start">
+									<h6>篩選</h6>
+								</li>
+
+								<li><a class="dropdown-item" href="#">今天</a></li>
+								<li><a class="dropdown-item" href="#">這個月</a></li>
+								<li><a class="dropdown-item" href="#">今年</a></li>
+							</ul>
+						</div>
+
+						<div class="card-body">
+							<h5 class="card-title fw-bold fs-5">收入 <span id="Revenue_Date">| 今天</span></h5>
+
+							<div class="d-flex align-items-center">
+								<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+									<i class="bi bi-currency-dollar"></i>
+								</div>
+								<div class="ps-3">
+									<h6 id="Revenue"></h6>
+									<span class="text-success small pt-1 fw-bold" id="Revenue_Percentage"></span> <span class="text-muted small pt-2 ps-1" id="Revenue_Compare"></span>
+
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div><!-- End 收入 -->
+				<!-- 意見 -->
+				<div class="col-xxl-4 col-xl-12">
+
+					<div class="card info-card customers-card">
+
+						<div class="filter">
+							<a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+							<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" id="service_filter">
+								<li class="dropdown-header text-start">
+									<h6>篩選</h6>
+								</li>
+
+								<li><a class="dropdown-item" href="#">今天</a></li>
+								<li><a class="dropdown-item" href="#">這個月</a></li>
+								<li><a class="dropdown-item" href="#">今年</a></li>
+							</ul>
+						</div>
+
+						<div class="card-body">
+							<h5 class="card-title fs-5 fw-bold">意見 <span id="service_date">| 今天</span></h5>
+
+							<div class="d-flex align-items-center">
+								<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+									<i class="bi bi-people"></i>
+								</div>
+								<div class="ps-3">
+									<h6 id="service"></h6>
+									<span class="text-danger small pt-1 fw-bold" id="Service_Percentage"></span> <span class="text-muted small pt-2 ps-1" id="Service_Compare"></span>
+
+								</div>
+							</div>
+
+						</div>
+					</div>
+
+				</div><!-- End 意見 -->
+				<!-- 會員人數 -->
+				<div class="col-12">
+					<div class="card">
+
+						<div class="filter">
+							<a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+							<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" id="member_List">
+								<li class="dropdown-header text-start">
+									<h6>篩選</h6>
+								</li>
+
+								<li><a class="dropdown-item" href="#">這個月</a></li>
+								<li><a class="dropdown-item" href="#">今年</a></li>
+							</ul>
+						</div>
+
+						<div class="card-body">
+							<h5 class="card-title fs-5 fw-bold">會員註冊人數 <span id="member_date">/這個月</span></h5>
+
+							<!-- Line Chart -->
+							<div id="lineChart"></div>
+
+							
+							<!-- End Line Chart -->
+
+						</div>
+
+					</div>
+				</div><!-- End 會員人數 -->
+				<!-- 銷售排行 -->
+				<div class="col-12">
+					<div class="card top-selling overflow-auto" style="min-height:220px;">
+
+						<div class="filter">
+							<a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+							<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" id="SalesRanking_List">
+								<li class="dropdown-header text-start">
+									<h6 >篩選</h6>
+								</li>
+
+								<li><a class="dropdown-item" href="#">今天</a></li>
+								<li><a class="dropdown-item" href="#">這個月</a></li>
+								<li><a class="dropdown-item" href="#">今年</a></li>
+							</ul>
+						</div>
+
+						<div class="card-body pb-0">
+							<h5 class="card-title fw-bold fs-5">銷售排行 <span id="SalesRanking_Date">| 今天</span></h5>
+
+							<table class="table table-borderless">
+								<thead>
+									<tr>
+										<th scope="col" class="fs-6">圖片</th>
+										<th scope="col" class="fs-6">產品</th>
+										<th scope="col" class="fs-6">價格</th>
+										<th scope="col" class="fs-6">數量</th>
+										<th scope="col" class="fs-6">收入</th>
+									</tr>
+								</thead>
+								<tbody id="SalesRanking">
+								</tbody>
+							</table>
+
+						</div>
+
+					</div>
+				</div><!-- End 銷售排行 -->
+
+			</div>
+		</div><!-- End Left side columns -->
+		<!-- Right side columns -->
+		<div class="col-lg-4">
+
+			<!-- 通知 -->
+			<div class="card">
+				<div class="card-body pb-1">
+					<div class="d-flex align-items-center pt-4 pb-3">
+						<h5 class="card-title fs-5 fw-bold py-0 mb-0">通知</h5>
+						<!--<a href="#" class="ms-auto " id="refresh"><i class="ri-refresh-line refresh" style="font-size:22px;"></i></a>-->
+					</div>
+					<div id="notification" style="max-height: 250px; overflow-y: auto;">
+					</div>
+				</div>
+			</div><!-- End 通知 -->
+			<!-- 商品庫存 -->
+			<div class="card">
+				
+				<div class="card-body pb-0 mb-0">
+					<h5 class="card-title pb-0 fs-5 fw-bold">商品庫存 <span>| 數量少於30</span></h5>
+
+					<!-- 商品庫存 -->
+					<div id="barChart"></div>
+
+				</div>
+			</div><!-- End 商品庫存 -->
+			<!-- 類別銷量 -->
+			<div class="card">
+				<div class="filter">
+					<a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+					<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" id="sales_filter">
+						<li class="dropdown-header text-start">
+							<h6>篩選</h6>
+						</li>
+
+						<li><a class="dropdown-item" href="#">今天</a></li>
+						<li><a class="dropdown-item" href="#">這個月</a></li>
+						<li><a class="dropdown-item" href="#">今年</a></li>
+					</ul>
+				</div>
+
+				<div class="card-body pb-0">
+					<h5 class="card-title fw-bold fs-5">類別銷量 <span id="sales_date">| 今天</span></h5>
+
+					<div id="trafficChart" style="min-height: 400px;" class="echart"></div>
+
+				</div>
+			</div><!-- End 類別銷量 -->
+		</div><!-- End Right side columns -->
+
+	</div>
+</section>
+
+@section Scripts {
+
+	<!--訂單計算-->
+	<script>
+		const TotalSales_Today = @Model.TotalSales_Today;
+		const TotalSales_Month = @Model.TotalSales_Month;
+		const TotalSales_Year = @Model.TotalSales_Year;
+		const TotalSales_Yesterday = @Model.TotalSales_Yesterday;
+		const TotalSales_LastMonth = @Model.TotalSales_LastMonth;
+		const TotalSales_LastYear = @Model.TotalSales_LastYear;
+
+		let Sales_List = document.getElementById("Sales_List");
+		let Sales = document.getElementById("Sales");
+		let Sales_Percentage = document.getElementById("Sales_Percentage");
+		let Sales_Compare = document.getElementById("Sales_Compare");
+		let Sales_Percentage_Today = Math.abs(((TotalSales_Today - TotalSales_Yesterday) / TotalSales_Yesterday) * 100).toFixed(1) + `%`;
+		let Sales_Percentage_Month = Math.abs(((TotalSales_Month - TotalSales_LastMonth) / TotalSales_LastMonth) * 100).toFixed(1) + `%`;
+		let Sales_Percentage_Year = Math.abs(((TotalSales_Year - TotalSales_LastYear) / TotalSales_LastYear) * 100) .toFixed(1) + `%`;
+
+		function setTotalSales(percntage, color, compare) {
+			Sales_Percentage.innerHTML = percntage;
+			Sales_Percentage.classList.remove("text-success", "text-secondary", "text-danger");
+			Sales_Percentage.classList.add(color);
+			Sales_Compare.innerHTML = compare;
+			Sales_Compare.classList.remove("text-success", "text-secondary", "text-danger");
+			Sales_Compare.classList.add(color);
+		};
+
+		if (TotalSales_Yesterday == 0) {
+			setTotalSales("100%", "text-secondary", "-");
+		} else if (TotalSales_Today == TotalSales_Yesterday) {
+			setTotalSales("0%", "text-secondary", "-");
+		} else if (TotalSales_Today > TotalSales_Yesterday) {
+			setTotalSales(Sales_Percentage_Today, "text-success", "increase");
+		} else {
+			setTotalSales(Sales_Percentage_Today, "text-danger", "decrease");
+		};
+
+		Sales.innerHTML = TotalSales_Today.toLocaleString();
+
+		Sales_List.addEventListener("click", (e) => {
+			e.preventDefault(); // 防止跳轉
+
+			const Sales_filter = e.target.textContent.trim();
+			if (Sales_filter === "篩選") {
+				return;
+			}
+			document.getElementById("Sales_Date").innerHTML = "| " + Sales_filter;
+			switch (Sales_filter) {
+				case "今天":
+					Sales.innerHTML = TotalSales_Today.toLocaleString();
+					if (TotalSales_Yesterday == 0) {
+						setTotalSales("100%", "text-secondary", "-");
+					} else if (TotalSales_Today == TotalSales_Yesterday) {
+						setTotalSales("0%", "text-secondary", "-");
+					} else if (TotalSales_Today > TotalSales_Yesterday) {
+						setTotalSales(Sales_Percentage_Today, "text-success", "increase");
+					} else {
+						setTotalSales(Sales_Percentage_Today, "text-danger", "decrease");
+					};
+					break;
+				case "這個月":
+					Sales.innerHTML = TotalSales_Month.toLocaleString();
+					if (TotalSales_LastMonth == 0) {
+						setTotalSales("100%", "text-secondary", "-");
+					} else if (TotalSales_Month == TotalSales_LastMonth) {
+						setTotalSales("0%", "text-secondary", "-");
+					} else if (TotalSales_Month > TotalSales_LastMonth) {
+						setTotalSales(Sales_Percentage_Month, "text-success", "increase");
+					} else {
+						setTotalSales(Sales_Percentage_Month, "text-danger", "decrease");
+					};
+					break;
+				case "今年":
+					Sales.innerHTML = TotalSales_Year.toLocaleString();
+					if (TotalSales_LastYear == 0) {
+						setTotalSales("100%", "text-secondary", "-");
+					} else if (TotalSales_Year == TotalSales_LastYear) {
+						setTotalSales("0%", "text-secondary", "-");
+					} else if (TotalSales_Year > TotalSales_LastYear) {
+						setTotalSales(Sales_Percentage_Year, "text-success", "increase");
+					} else {
+						setTotalSales(Sales_Percentage_Year, "text-danger", "decrease");
+					};
+					break;
+			}
+		})
+
+	</script>
+
+	<!--收入計算-->
+	<script>
+		const TotalPrice_Today = @Model.TotalPrice_Today;
+		const TotalPrice_Month = @Model.TotalPrice_Month;
+		const TotalPrice_Year = @Model.TotalPrice_Year;
+		const TotalPrice_Yesterday = @Model.TotalPrice_Yesterday;
+		const TotalPrice_LastMonth = @Model.TotalPrice_LastMonth;
+		const TotalPrice_LastYear = @Model.TotalPrice_LastYear;
+
+		let Revenue_List = document.getElementById("Revenue_List");
+		let Revenue = document.getElementById("Revenue");
+		let Revenue_Percentage = document.getElementById("Revenue_Percentage");
+		let Revenue_Compare = document.getElementById("Revenue_Compare");
+		let Price_Percentage_Today = Math.abs(((TotalPrice_Today - TotalPrice_Yesterday) / TotalPrice_Yesterday) * 100).toFixed(1) + `%`;
+		let Price_Percentage_Month = Math.abs(((TotalPrice_Month - TotalPrice_LastMonth) / TotalPrice_LastMonth) * 100).toFixed(1) + `%`;
+		let Price_Percentage_Year = Math.abs(((TotalPrice_Year - TotalPrice_LastYear) / TotalPrice_LastYear) * 100).toFixed(1) + `%`;
+
+		function setTotalPrice(percntage,color,compare) {
+			Revenue_Percentage.innerHTML = percntage;
+			Revenue_Percentage.classList.remove("text-success", "text-secondary", "text-danger");
+			Revenue_Percentage.classList.add(color);
+			Revenue_Compare.innerHTML = compare;
+			Revenue_Compare.classList.remove("text-success", "text-secondary", "text-danger");
+			Revenue_Compare.classList.add(color);
+		};
+
+		if (TotalPrice_Yesterday == 0) {
+			setTotalPrice("100%", "text-secondary", "-");
+		} else if (TotalPrice_Today == TotalPrice_Yesterday) {
+			setTotalPrice("0%", "text-secondary", "-");
+		} else if (TotalPrice_Today > TotalPrice_Yesterday) {
+			setTotalPrice(Price_Percentage_Today, "text-success", "increase");
+		} else {
+			setTotalPrice(Price_Percentage_Today, "text-danger", "decrease");
+		};
+
+		Revenue.innerHTML = TotalPrice_Today.toLocaleString();
+
+		Revenue_List.addEventListener("click", (e) => {
+
+			e.preventDefault(); // 防止跳轉
+
+			const Revenue_filter = e.target.textContent.trim();
+			if (Revenue_filter === "篩選") {
+				return;
+			}
+			document.getElementById("Revenue_Date").innerHTML = "| " + Revenue_filter;
+			switch (Revenue_filter) {
+				case "今天":
+					Revenue.innerHTML = TotalPrice_Today.toLocaleString();
+					if (TotalPrice_Yesterday == 0) {
+						setTotalPrice("100%", "text-secondary", "-");
+					} else if (TotalPrice_Today == TotalPrice_Yesterday) {
+						setTotalPrice("0%", "text-secondary", "-");
+					} else if (TotalPrice_Today > TotalPrice_Yesterday) {
+						setTotalPrice(Price_Percentage_Today, "text-success", "increase");
+					} else {
+						setTotalPrice(Price_Percentage_Today, "text-danger", "decrease");
+					};
+					break;
+				case "這個月":
+					Revenue.innerHTML = TotalPrice_Month.toLocaleString();
+					if (TotalPrice_LastMonth == 0) {
+						setTotalPrice("100%", "text-secondary", "-");
+					} else if (TotalPrice_Month == TotalPrice_LastMonth) {
+						setTotalPrice("0%", "text-secondary", "-");
+					} else if (TotalPrice_Month > TotalPrice_LastMonth) {
+						setTotalPrice(Price_Percentage_Month, "text-success", "increase");
+					} else {
+						setTotalPrice(Price_Percentage_Month, "text-danger", "decrease");
+					};
+					break;
+				case "今年":
+					Revenue.innerHTML = TotalPrice_Year.toLocaleString();
+					if (TotalPrice_LastYear == 0) {
+						setTotalPrice("100%", "text-secondary", "-");
+					} else if (TotalPrice_Year == TotalPrice_LastYear) {
+						setTotalPrice("0%", "text-secondary", "-");
+					} else if (TotalPrice_Year > TotalPrice_LastYear) {
+						setTotalPrice(Price_Percentage_Year, "text-success", "increase");
+					} else {
+						setTotalPrice(Price_Percentage_Year, "text-danger", "decrease");
+					};
+					break;
+			}
+		})
+
+	</script>
+
+	<!--意見計算-->
+	<script>
+		$(function () {
+			const TotalPrice_Today = @Model.Advice_today;
+			const TotalPrice_Month = @Model.Advice_month;
+			const TotalPrice_Year = @Model.Advice_year;
+			const TotalPrice_Yesterday = @Model.Advice_yesterday;
+			const TotalPrice_LastMonth = @Model.Advice_lastmonth;
+			const TotalPrice_LastYear = @Model.Advice_lastyear;
+			let Service_Percentage_Today = Math.abs(((@Model.Advice_today - @Model.Advice_yesterday) / @Model.Advice_yesterday) * 100).toFixed(1) + `%`;
+			let Service_Percentage_Month = Math.abs(((@Model.Advice_month - @Model.Advice_lastmonth) / @Model.Advice_lastmonth) * 100).toFixed(1) + `%`;
+			let Service_Percentage_Year = Math.abs(((@Model.Advice_year - @Model.Advice_lastyear) / @Model.Advice_lastyear) * 100).toFixed(1) + `%`;
+			function setCustService(percntage, color, compare) {
+				$("#Service_Percentage").text(percntage);
+				$("#Service_Percentage").removeClass("text-success", "text-secondary", "text-danger");
+				$("#Service_Percentage").addClass(color);
+				$("#Service_Compare").text(compare);
+				$("#Service_Compare").removeClass("text-success", "text-secondary", "text-danger");
+				$("#Service_Compare").addClass(color);
+			};
+
+			if (@Model.Advice_yesterday == 0) {
+				setCustService("100%", "text-secondary", "-");
+			} else if (@Model.Advice_today == @Model.Advice_yesterday) {
+				setCustService("0%", "text-secondary", "-");
+			} else if (@Model.Advice_today > @Model.Advice_yesterday) {
+				setCustService(Service_Percentage_Today, "text-success", "increase");
+			} else {
+				setCustService(Service_Percentage_Today, "text-danger", "decrease");
+			};
+
+			$("#service").text(@Model.Advice_today);
+
+			$("#service_filter").on("click", (e) => { 
+				e.preventDefault();
+				const Custservice_date = e.target.textContent.trim();
+				$("#service_date").text(`| ${Custservice_date}`);
+				
+				switch (Custservice_date) {
+					case "今天":
+						$("#service").text(@Model.Advice_today);
+							if (@Model.Advice_yesterday == 0) {
+								setCustService("100%", "text-secondary", "-");
+							} else if (@Model.Advice_today == @Model.Advice_yesterday) {
+								setCustService("0%", "text-secondary", "-");
+							} else if (@Model.Advice_today > @Model.Advice_yesterday) {
+								setCustService(Service_Percentage_Today, "text-success", "increase");
+							} else {
+								setCustService(Service_Percentage_Today, "text-danger", "decrease");
+							};
+						break;
+						case "這個月":
+							$("#service").text(@Model.Advice_month);
+							if (@Model.Advice_lastmonth == 0) {
+								setCustService("100%", "text-secondary", "-");
+							} else if (@Model.Advice_month == @Model.Advice_lastmonth) {
+								setCustService("0%", "text-secondary", "-");
+							} else if (@Model.Advice_month > @Model.Advice_lastmonth) {
+								setCustService(Service_Percentage_Month, "text-success", "increase");
+							} else {
+								setCustService(Service_Percentage_Month, "text-danger", "decrease");
+							};
+						break;
+					case "今年":
+						$("#service").text(@Model.Advice_year);
+						$("#service").text(@Model.Advice_month);
+							if (@Model.Advice_lastyear == 0) {
+								setCustService("100%", "text-secondary", "-");
+							} else if (@Model.Advice_year == @Model.Advice_lastyear) {
+								setCustService("0%", "text-secondary", "-");
+							} else if (@Model.Advice_year > @Model.Advice_lastyear) {
+								setCustService(Service_Percentage_Year, "text-success", "increase");
+							} else {
+								setCustService(Service_Percentage_Year, "text-danger", "decrease");
+							};
+						break;
+				}
+			})
+		})
+
+	</script>
+
+	<!--銷售排行-->
+	<script>
+		const SalesRanking = document.getElementById("SalesRanking");
+		const SalesRanking_List = document.getElementById("SalesRanking_List");
+		function TOP5_Today() {
+				SalesRanking.innerHTML = "";
+				@foreach (var product in ViewBag.SalesCount_TOP5_Today)
+				{
+					var totalprice = product.totalprice.ToString("N0"); // 轉換為千位符號
+					var price = product.price.ToString("N0"); // 轉換為千位符號
+					<text>
+								SalesRanking.innerHTML += `
+								<tr>
+									<th scope="row"><a href="#"><img src="~/Images/@product.image" alt="" style="width:60px;height:60px;"></a></th>
+									<td><a href="#" class="text-primary fw-bold">@product.name</a></td>
+									<td>@price</td>
+									<td class="fw-bold">@product.count</td>
+									<td>@totalprice</td>
+								</tr>
+								`;
+					</text>
+				}
+		};
+		function TOP5_Month() {
+			SalesRanking.innerHTML = "";
+		@foreach (var product in ViewBag.SalesCount_TOP5_Month)
+		{
+			var totalprice = product.totalprice.ToString("N0"); // 轉換為千位符號
+			var price = product.price.ToString("N0"); // 轉換為千位符號
+			<text>
+						SalesRanking.innerHTML += `
+						<tr>
+							<th scope="row"><a href="#"><img src="~/Images/@product.image" alt="" style="width:60px;height:60px;"></a></th>
+							<td><a href="#" class="text-primary fw-bold">@product.name</a></td>
+							<td>@price</td>
+							<td class="fw-bold">@product.count</td>
+							<td>@totalprice</td>
+						</tr>
+						`;
+			</text>
+		}
+				};
+		function TOP5_Year() {
+			SalesRanking.innerHTML = "";
+		@foreach (var product in ViewBag.SalesCount_TOP5_Year)
+		{
+			var totalprice = product.totalprice.ToString("N0"); // 轉換為千位符號
+			var price = product.price.ToString("N0"); // 轉換為千位符號
+			<text>
+						SalesRanking.innerHTML += `
+						<tr>
+							<th scope="row"><a href="#"><img src="~/Images/@product.image" alt="" style="width:60px;height:60px;"></a></th>
+							<td><a href="#" class="text-primary fw-bold">@product.name</a></td>
+							<td>@price</td>
+							<td class="fw-bold">@product.count</td>
+							<td>@totalprice</td>
+						</tr>
+						`;
+			</text>
+		}
+						};
+
+		TOP5_Today();
+		SalesRanking_List.addEventListener("click", (e) => {
+			
+			let date = e.target.textContent.trim();
+			if (date === "篩選") {
+				return;
+			}
+			e.preventDefault();
+			document.getElementById("SalesRanking_Date").innerHTML = "| " + date;
+			switch (date) {
+				case "今天":
+					TOP5_Today();
+						break;
+
+				case "這個月":
+					TOP5_Month();
+						break;
+				case "今年":
+					TOP5_Year();
+						break;
+			}
+		})
+
+	</script>
+
+	<!--通知-->
+	<script>
+		const notification = document.getElementById("notification");
+		function notification_refresh() {
+			notification.innerHTML = "";
+		@foreach (var item in Model.Tproduct_none)
+		{
+			<text>
+						notification.innerHTML+=`
+				<a href="~/Product/Edit/@item.Pid" class="notification-item px-0 py-2">
+					<i class="bi bi-exclamation-circle text-warning"></i>
+					<div>
+						<h3 style="color:deepblue;">商品缺貨</h3>
+								<p class="fs-6" style="color:#707070;">@item.Pname 已無庫存</p>
+					</div>
+				</a>
+				<div>
+					<hr class="my-2"/>
+				</div>`
+			</text>	
+		}
+		@foreach (var item in Model.Torder_none)
+		{
+			<text>
+						notification.innerHTML+=`
+						<a href="~/Order/List" class="notification-item px-0 py-2">
+							<i class="bi bi-exclamation-circle text-warning"></i>
+							<div>
+								<h3 style="color:darkred;">訂單未處理</h3>
+								<p class="fs-6" style="color:#707070 ;">訂單編號: @item.Oid 已超過三日未處理</p>
+							</div>
+						</a>
+						<div>
+							<hr class="my-2" />
+						</div>`
+			</text>
+		}
+		}
+		notification_refresh();
+
+	</script>
+
+	<!--會員人數-->
+	<script>
+		let memberCountMonth = @Html.Raw(JsonSerializer.Serialize(Model.members_count_Month))
+		let memberCountYear = @Html.Raw(JsonSerializer.Serialize(Model.members_count_Year))
+		let monthDays = @Html.Raw(JsonSerializer.Serialize(Model.month_Days))
+		let yearMonth = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+		let chart;
+		let maxValueMonth = Math.max(5, Math.max(...memberCountMonth)); // 至少 5，避免 max = 1 時出現小數
+		let maxValueYear = Math.max(5, Math.max(...memberCountYear));
+		while (maxValueMonth % 5 != 0) {
+			maxValueMonth++;
+		};
+		while (maxValueYear % 5 != 0) {
+			maxValueYear++;
+		};
+
+		function MemberCountMonth() {
+
+			if (chart) chart.destroy();
+			chart=new ApexCharts(document.querySelector("#lineChart"), {
+				series: [{
+					name: "會員",
+					data: memberCountMonth
+				}],
+				chart: {
+					height: 350,
+					type: 'line',
+					zoom: {
+						enabled: false
+					}
+				},
+				dataLabels: {
+					enabled: false
+				},
+				stroke: {
+					curve: 'straight'
+				},
+				grid: {
+					row: {
+						colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+						opacity: 0.5
+					},
+				},
+				xaxis: {
+					categories: monthDays,
+				},
+				yaxis: {
+					min: 0,  // 設置 Y 軸最小值
+					max: maxValueMonth, // 設定最大值，避免小數刻度
+					tickAmount: 5, // 避免 tickAmount > maxValue
+				}
+			});
+			chart.render();
+		}
+
+		function MemberCountYear() {
+			if (chart) chart.destroy();
+			chart=new ApexCharts(document.querySelector("#lineChart"), {
+				series: [{
+					name: "會員",
+					data: memberCountYear
+				}],
+				chart: {
+					height: 350,
+					type: 'line',
+					zoom: {
+						enabled: false
+					}
+				},
+				dataLabels: {
+					enabled: false
+				},
+				stroke: {
+					curve: 'straight',
+				},
+				grid: {
+					row: {
+						colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+						opacity: 0.5
+					},
+				},
+				xaxis: {
+					categories: yearMonth,
+				},
+				yaxis: {
+					min: 0,  // 設置 Y 軸最小值
+					max: maxValueYear,
+					tickAmount: 5, // 設置 Y 軸的刻度數量
+				}
+			});
+			chart.render();
+		}
+
+		document.addEventListener("DOMContentLoaded", () => {
+
+			MemberCountMonth();
+		});
+
+		$(function () {
+			$("#member_List").on("click", (e) => {
+				e.preventDefault();
+				let date = e.target.textContent.trim();
+				$("#member_date").text(`/${date}`);
+				switch (date) {
+
+					case "這個月":
+						MemberCountMonth();
+						break;
+					case "今年":
+						MemberCountYear();
+						break;
+
+				}
+			})
+		})
+	</script>
+
+	<!--商品庫存-->
+	<script>
+		let productInventory = @Html.Raw(JsonSerializer.Serialize(Model.product_inventory));
+		let productName = @Html.Raw(JsonSerializer.Serialize(Model.product_name));
+
+		document.addEventListener("DOMContentLoaded", () => {
+			new ApexCharts(document.querySelector("#barChart"), {
+				series: [{
+					name: "庫存",
+					data: productInventory,
+				}],
+				chart: {
+					type: 'bar',
+					height: 350
+				},
+				plotOptions: {
+					bar: {
+						borderRadius: 4,
+						horizontal: true,
+					}
+				},
+				dataLabels: {
+					enabled: false
+				},
+				xaxis: {
+					categories: productName,
+					max:50,
+				},
+				colors: [function ({ value, productInventory}) {
+					if (value <= 10) {
+						return '#dd0404'
+					} else {
+						return '#1130e5'
+					}
+				}, function ({ value, productInventory}) {
+					if (value <= 50) {
+						return '#1130e5'
+					} else {
+						return '#D9534F'
+					}
+				}]
+			}).render();
+		});
+	</script>
+
+	<!--類別銷量-->
+	<script>
+		let typesales_today = @Html.Raw(JsonSerializer.Serialize(ViewBag.typesales_today));
+		let typesales_month = @Html.Raw(JsonSerializer.Serialize(ViewBag.typesales_month));
+		let typesales_year = @Html.Raw(JsonSerializer.Serialize(ViewBag.typesales_year));
+		let echart;
+
+		function echart_today() {
+			if(echart) echart.dispose();
+			echart = echarts.init(document.querySelector("#trafficChart"));
+			echart.setOption({
+				tooltip: {
+					trigger: 'item'
+				},
+				legend: {
+					top: '0%',
+					left: 'center',
+					textStyle: {
+						fontSize: 16,
+					},
+					show: false,
+				},
+				series: [{
+					name: '類別銷量',
+					type: 'pie',
+					radius: ['40%', '70%'],
+					avoidLabelOverlap: false,
+					label: {
+						show: false,
+						position: 'center'
+					},
+					emphasis: {
+						label: {
+							show: true,
+							fontSize: '18',
+							fontWeight: 'bold'
+						}
+					},
+					labelLine: {
+						show: false
+					},
+					data: typesales_today
+				}]
+			})
+		}
+
+		function echart_month() {
+			if (echart) echart.dispose();
+			echart = echarts.init(document.querySelector("#trafficChart"));
+			echart.setOption({
+				tooltip: {
+					trigger: 'item'
+				},
+				legend: {
+					top: '5%',
+					left: 'center',
+					textStyle: {
+						fontSize: 16,
+					}
+				},
+				series: [{
+					name: '類別銷量',
+					type: 'pie',
+					radius: ['40%', '70%'],
+					avoidLabelOverlap: false,
+					label: {
+						show: false,
+						position: 'center'
+					},
+					emphasis: {
+						label: {
+							show: true,
+							fontSize: '18',
+							fontWeight: 'bold'
+						}
+					},
+					labelLine: {
+						show: false
+					},
+					data: typesales_month
+				}]
+			})
+		}
+
+		function echart_year() {
+			if (echart) echart.dispose();
+			echart = echarts.init(document.querySelector("#trafficChart"));
+			echart.setOption({
+				tooltip: {
+					trigger: 'item'
+				},
+				legend: {
+					top: '5%',
+					left: 'center',
+					textStyle: {
+						fontSize: 16,
+					}
+				},
+				series: [{
+					name: '類別銷量',
+					type: 'pie',
+					radius: ['40%', '70%'],
+					avoidLabelOverlap: false,
+					label: {
+						show: false,
+						position: 'center'
+					},
+					emphasis: {
+						label: {
+							show: true,
+							fontSize: '18',
+							fontWeight: 'bold'
+						}
+					},
+					labelLine: {
+						show: false
+					},
+					data: typesales_year
+				}]
+			})
+		}
+
+		document.addEventListener("DOMContentLoaded", () => {
+			echart_today();
+		});
+
+
+		$(function () { 
+			$("#sales_filter").on("click", (e) => {
+				e.preventDefault();
+				let salesDate = e.target.textContent.trim();
+				$("#sales_date").text(`| ${salesDate}`);
+				switch (salesDate) { 
+					case "今天":
+						echart_today();
+						break;
+					case "這個月":
+						echart_month();
+						break;
+					case "今年":
+						echart_year();
+						break;
+				}
+				})
+			})
+		
+	</script>
+
+
+}
+
+
+

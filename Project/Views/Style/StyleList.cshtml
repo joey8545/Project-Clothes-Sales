@@ -1,0 +1,81 @@
+﻿@model List<Project.ViewModel.StyleViewModel>
+@{
+    Layout = "~/Views/Shared/Front_Layout.cshtml";
+}
+@section styles {
+    <style>
+        .card {
+            cursor: pointer; /* 滑鼠變成手指 */
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal a {
+            text-decoration: none; /* 移除底線 */
+            color: black; /* 預設顏色 */
+        }
+
+        .modal a:hover {
+             color: gray; /* 滑鼠懸停時變灰色 */
+        }
+           
+    </style>
+}
+
+<div class="container mt-4">
+
+    <div class="row">
+
+        @foreach (var style in Model)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card">
+                    <img src="~/images/@style.SImg" class="card-img-top img-fluid" alt="穿搭圖" data-bs-toggle="modal" data-bs-target="#styleModal-@style.SImg.GetHashCode()">
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="styleModal-@style.SImg.GetHashCode()" tabindex="-1" aria-labelledby="styleModalLabel-@style.SImg.GetHashCode()" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="styleModalLabel-@style.SImg.GetHashCode()">穿搭相關商品</h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <img src="~/images/@style.SImg" class="img-fluid" alt="穿搭圖">
+                                </div>
+                                <div class="col-md-6">
+                                    @foreach (var product in style.Products)
+                                    {
+                                        <div class="d-flex my-3">
+                                            <img src="~/images/@product.PPhoto" class="img-fluid" style="width:25%; height:25%;" alt="@product.PName">
+                                            <div class="ms-3">
+                                                <p>@product.PName</p>
+                                                <p class="mb-3">NT$@product.PPrice</p>
+                                                <a href="@Url.Action("ProductDetail","Product",new { id = product.PID })" class="">查看商品詳情</a>
+                                            </div>
+                                        </div>
+                                        <hr />
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+      
+    </script>
+}

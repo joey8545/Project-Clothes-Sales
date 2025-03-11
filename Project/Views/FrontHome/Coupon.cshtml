@@ -1,0 +1,125 @@
+﻿@{
+    Layout = "~/Views/Shared/FrontMember_Layoutcshtml.cshtml";
+}
+
+@section styles{
+    <style>
+        .CouponEnter{
+            border:2px solid lightgray;
+        }
+
+        .btn-send {
+            border: 1px solid lightgray;
+            border-radius: 15px;
+            width:70px;
+            margin-left:10px;        }
+
+        .btn-send:hover {
+            background: #ECF5FF;
+        }
+    </style>
+}
+<div id="app">
+    <div class="container">
+        <div class="row">
+            <div class="d-flex col-12 mt-3">
+                <h3 class="d-flex align-items-center" style="font-weight:500 !important;">
+                    我的優惠券
+                </h3>
+                <form class="ms-auto d-flex">
+                    <input class="form-control" type="text" placeholder="輸入優惠碼" v-model="CouponPassWord"/>
+                    <button class="btn btn-send" type="button" v-on:click="SendCoupon">領取</button>
+                </form>
+            </div>
+
+            <hr class="my-3" />
+            <div class="table-responsive col-12">
+                <table class="table align-middle table-bordered">
+                    <thead style="background-color:#ECF5FF">
+                        <tr>
+                            <th class="text-center">
+                                折價券面額
+                            </th>
+                            <th class="text-center">
+                                折價券說明
+                            </th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in Coupon" >
+                            <td class="text-center">{{item.couponDiscount > 0 ? item.couponDiscount+"元" : item.couponPercentage+"折"}}</td>
+                            <td style="letter-spacing:1px">
+                                <span class="fw-bold">{{item.couponName}}</span><br />
+                                適用通路：網路購物<br />
+                                適用商品：所有商品<br />
+                                有效開始日：{{item.dateStart}}<br />
+                                <span style="color:indianred">有效結束日：{{item.dateEnd}}</span><br />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        var vueApp = {
+            data() { 
+                return {
+                    baseAddress: "https://localhost:7279",
+                    Coupon:[],
+                    CouponPassWord:"",
+                }
+            },
+            methods: {
+                SendCoupon: function () { 
+                    let _this = this;
+                    let request = { CouponPassWord: _this.CouponPassWord };
+                    axios.post(`${_this.baseAddress}/Ajax/SendCoupon`, request).then(response => {
+                        if (response.data.success) {
+                            Swal.fire({
+                                title: response.data.message,
+                                icon: "success"
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: response.data.message,
+                            });
+                        }
+                        _this.GetCoupon();
+                    }).catch(err => { 
+                        // alert(err.message);
+                    })
+                },
+                GetCoupon: function () {
+                    let _this = this;
+                    axios.get(`${_this.baseAddress}/Ajax/GetCoupon`).then(response => {
+                        if (response.data.success==false) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '請重新登入會員',
+                                showConfirmButton: true,
+                            });
+                            window.location.href = response.data.redirectUrl;
+                        } else {
+                            _this.Coupon = response.data.data;
+                        };
+                    }).catch(err => {
+                        // alert(err.message);
+                    })
+                },
+            },
+            mounted() {
+                this.GetCoupon();
+            }
+        }
+        var App = Vue.createApp(vueApp).mount("#app");
+    </script>
+}

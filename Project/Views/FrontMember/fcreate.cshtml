@@ -1,0 +1,515 @@
+﻿@model Project.Models.CMemberWrap
+@{
+    Layout = "~/Views/Shared/Front_Layout.cshtml";
+}
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="auth-wrapper">@* 最外層容器，控制寬度與置中*@ 
+    <div id="authForms" class="auth-container">@* 表單切換標籤 *@
+        <div class="auth-tabs">
+            <button class="tab-btn active" data-form="login">登入</button> 
+            <button class="tab-btn" data-form="register">註冊</button>             
+        </div>
+        <form id="registerForm" class="auth-form hidden" action="~/FrontMember/fcreate" method="post">
+            @Html.AntiForgeryToken() @* 防止 CSRF 攻擊 *@
+            <!--姓名 -->
+            <div class="form-group mb-3">
+                <label asp-for="Mname" class="mb-1"></label>
+                <input asp-for="Mname" class="form-control" placeholder="請輸入姓名"/>
+                <span asp-validation-for="Mname" class="text-danger"></span>
+            </div>
+            <!--性別-->
+            <div class="form-group mb-3">
+                <label asp-for="Mgender" class="mb-1"></label>
+                <div class="btn-group" role="group" aria-label="性別選擇">
+                    @Html.RadioButtonFor(model => model.Mgender, 0, new { id = "male", @class = "btn-check" })
+                    <label class="btn btn-outline-primary" for="male">男性</label>
+
+                    @Html.RadioButtonFor(model => model.Mgender, 1, new { id = "female", @class = "btn-check" })
+                    <label class="btn btn-outline-primary" for="female">女性</label>
+                </div>
+                <span asp-validation-for="Mgender" class="text-danger"></span>
+            </div>
+            <!--生日-->
+            <div class="form-group mb-3">
+                <label asp-for="Mbirthday" class="mb-1"></label>
+                <input asp-for="Mbirthday"
+                       class="form-control datepicker"
+                       type="text"
+                       autocomplete="off" 
+                       name="Mbirthday" />
+                <span asp-validation-for="Mbirthday" class="text-danger"></span>
+            </div>
+            <!--電子郵件 -->
+            <div class="form-group mb-3">
+                <label asp-for="Memail" class="mb-1"></label>
+                <input asp-for="Memail" class="form-control" id="email" placeholder="請輸入E-mail" onblur="checkDuplicateField('Memail', this.value, 'email-duplicate-error')" />        
+                <span id="email-duplicate-error" style="color:red;"></span>
+            </div>
+            <!--地址 -->
+            <div class="form-group mb-3">
+                <label asp-for="Maddress" class="mb-1"></label>
+                <input asp-for="Maddress" class="form-control" placeholder="請輸入地址" />
+                <span asp-validation-for="Maddress" class="text-danger"></span>
+            </div>
+            <!--手機號碼 -->
+            <div class="form-group mb-3">
+                <label asp-for="Mphone" class="mb-1"></label>
+                <input asp-for="Mphone" class="form-control" id="phone" placeholder="請輸入手機號碼" onblur="checkDuplicateField('Mphone', this.value, 'phone-duplicate-error')" />                
+                <span id="phone-duplicate-error" style="color:red;"></span>
+            </div>
+            <!--帳號 -->
+            <div class="form-group mb-3">
+                <label asp-for="Maccount" class="mb-1"></label>
+                <input asp-for="Maccount" class="form-control" placeholder="請輸入帳號" id="account" onblur="checkDuplicateField('Maccount', this.value, 'account-duplicate-error')" />               
+                <span id="account-duplicate-error" style="color:red;"></span>
+            </div>
+            <!--密碼 -->
+            <div class="form-group mb-3">
+                <label asp-for="Mpassword" class="mb-1"></label>
+                <input asp-for="Mpassword" class="form-control" placeholder="請輸入密碼" type="password" />
+                <span asp-validation-for="Mpassword" class="text-danger"></span>
+            </div>
+            <!--確認密碼 (僅前端處理) -->
+            <div class="form-group mb-3">
+                <label asp-for="ConfirmPassword" class="mb-1"></label>
+                <input asp-for="ConfirmPassword" class="form-control" placeholder="請再次輸入密碼" type="password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mb-3">註冊</button>
+        </form>
+        <!-- 登入表單 -->
+        <form id="loginForm" class="auth-form" onsubmit="return loginWithAjax()">
+            @Html.AntiForgeryToken()
+            <div class="form-group mb-3">
+                <label class="mb-1">帳號</label>
+                <input type="text" class="form-control" placeholder="請輸入帳號" id="faccount" name="faccount" required>
+            </div>
+            <div class="form-group mb-3">
+                <label class="mb-1">密碼</label>
+                <input type="password" class="form-control" placeholder="請輸入密碼" id="fpassword" name="fpassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mb-3">登入</button>
+        </form>
+    </div>
+</div>
+<style>
+    .auth-wrapper {
+        max-width: 500px; /* 控制容器最大寬度 */
+        margin: 0 auto; /* 水平置中 */
+        padding: 20px; /* 容器內距 */
+    }
+
+    .auth-container {
+        text-align: center; /* 文字置中 */
+    }
+
+    .auth-tabs {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px; /* 標籤底部距 */
+    }
+
+    .tab-btn {
+        background-color: transparent; /*背景透明 */
+        border: none; /* 移除預設邊框 */
+        font-size: 1.2rem; /* 字體大小 */
+        padding: 10px 20px; /* 內邊距 */
+        cursor: pointer; /* 游標為可點擊 */
+        outline: none; /* 移除 focus 外框 */
+    }
+
+        .tab-btn.active {
+            border-bottom: 2px solid #000; /* 當前選項卡底部邊框 */
+        }
+
+    .auth-form {
+        text-align: left; /* 表單內容靠左 */
+        margin-bottom: 20px;
+    }
+
+    .hidden {
+        display: none; /* 隱藏元素 */
+    }
+
+    .mb-3 {
+        margin-bottom: 1rem !important; /*欄位間距 */
+    }
+
+    .mb-1 {
+        margin-bottom: 0.25rem !important; /*label 與 input 間距 */
+    }
+
+    .btn-outline-primary:focus,
+    .btn-outline-primary:active {
+        box-shadow: none !important; /*移除按鈕陰影 */
+    }
+</style>
+@section Scripts {
+    <script>
+        // (1)【新增】即時檢查重複函式
+        // -------------------------------
+        function checkDuplicateField(fieldName, fieldValue, errorSpanId) {
+            // 先把使用者輸入做 trim()
+            const trimmedValue = fieldValue.trim();
+            // 若輸入空值 => 顯示「未填寫」
+            if (!trimmedValue) {
+                if (fieldName === 'Maccount') {
+                    document.getElementById(errorSpanId).textContent = "帳號必須填寫";
+                } else if (fieldName === 'Memail') {
+                    document.getElementById(errorSpanId).textContent = "Email必須填寫";
+                } else if (fieldName === 'Mphone') {
+                    document.getElementById(errorSpanId).textContent = "手機必須填寫";
+                }
+                return; // 不進行資料庫檢查
+            }
+
+            // 呼叫後端 CheckDuplicate
+            fetch('@Url.Action("CheckDuplicate", "FrontMember")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ fieldName: fieldName, fieldValue: fieldValue })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.isDuplicate) {
+                    // 若重複 => 顯示對應訊息
+                    if (fieldName === 'Maccount')
+                        document.getElementById(errorSpanId).textContent = "帳號已有人使用";
+                    else if (fieldName === 'Memail')
+                        document.getElementById(errorSpanId).textContent = "已有人使用";
+                    else if (fieldName === 'Mphone')
+                        document.getElementById(errorSpanId).textContent = "手機已有人使用";
+                } else {
+                    // 若不重複 => 清空錯誤訊息
+                    document.getElementById(errorSpanId).textContent = "";
+                }
+            })
+            .catch(err => {
+                console.error('CheckDuplicate錯誤:', err);
+                // 視需求可顯示系統錯誤訊息
+            });
+        }
+
+        // 用戶介面相關變數
+        let isProcessing = false; // 防止重複提交
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 錯誤處理 - 從ViewBag顯示錯誤訊息
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
+        {
+            <text>
+                        Swal.fire({
+                            icon: 'error',
+                            title: '錯誤',
+                            text: '@Html.Raw(ViewBag.ErrorMessage)',
+                            confirmButtonText: 'OK'
+                        });
+            </text>
+        }
+
+            // 初始化頁籤切換功能
+            initTabSwitching();
+
+            // 初始檢查登入狀態
+            checkLoginStatus();
+
+            // 為「忘記密碼」連結添加事件處理
+            const forgotLink = document.querySelector('.forgot-link');
+            if (forgotLink) {
+                forgotLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showForgotPasswordForm();
+                });
+            }
+        });
+
+        // 顯示忘記密碼表單
+        function showForgotPasswordForm() {
+            Swal.fire({
+                title: '忘記密碼',
+                html: `
+                    <div class="form-group mb-3">
+                        <input type="email" id="recovery-email" class="form-control" placeholder="請輸入您的Email">
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '送出',
+                cancelButtonText: '取消',
+                showLoaderOnConfirm: true,
+                preConfirm: (email) => {
+                    const recoveryEmail = document.getElementById('recovery-email').value;
+                    if (!recoveryEmail) {
+                        Swal.showValidationMessage('請輸入Email');
+                        return false;
+                    }
+
+                    // 實際環境中應發送請求到後端進行處理
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve({ success: true });
+                        }, 1000);
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '重設密碼郵件已發送',
+                        text: '請檢查您的Email並按照指示進行操作'
+                    });
+                }
+            });
+        }
+
+        // 初始化頁籤切換功能
+        function initTabSwitching() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const registerForm = document.getElementById('registerForm');
+            const loginForm = document.getElementById('loginForm');
+
+            if (tabBtns && tabBtns.length > 0) {
+                tabBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // 如果正在處理請求，不允許切換
+                        if (isProcessing) return;
+
+                        // 移除所有按鈕的活動狀態
+                        tabBtns.forEach(b => b.classList.remove('active'));
+                        // 設置當前按鈕為活動狀態
+                        btn.classList.add('active');
+
+                        // 根據按鈕的data-form屬性切換表單
+                        if (btn.dataset.form === 'login' && loginForm && registerForm) {
+                            loginForm.classList.remove('hidden');
+                            registerForm.classList.add('hidden');
+                        } else if (btn.dataset.form === 'register' && loginForm && registerForm) {
+                            registerForm.classList.remove('hidden');
+                            loginForm.classList.add('hidden');
+                        }
+
+                        // 清除表單內容和狀態訊息
+                        if (btn.dataset.form === 'login') {
+                            registerForm.reset();
+                        } else {
+                            loginForm.reset();
+                        }
+                    });
+                });
+            }
+        }
+
+        // 檢查登入狀態的函數
+        function checkLoginStatus() {
+            fetch('@Url.Action("CheckLoginStatus", "Account")', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.isLoggedIn) {
+                    // 已登入狀態，自動跳轉到用戶中心或主頁
+                    Swal.fire({
+                        icon: 'info',
+                        title: '您已登入',
+                        text: `歡迎回來，${data.username}！`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = data.redirectUrl || '@Url.Action("FrontIndex", "FrontHome")';
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('檢查登入狀態錯誤:', error);
+            });
+        }
+
+        // 通用的AJAX請求處理函數 - 簡化版本
+        function sendAuthRequest(url, data, successCallback, failureCallback) {
+            // 防止重複提交
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenEl ? tokenEl.value : '';
+
+            // 顯示處理中提示
+            Swal.fire({
+                title: '處理中...',
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+                showConfirmButton: false
+            });
+
+            // 發送AJAX請求
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('伺服器回應錯誤: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(result => {
+                Swal.close();
+                isProcessing = false;
+
+                if (result.success) {
+                    successCallback(result);
+                } else {
+                    failureCallback(result);
+                }
+            })
+            .catch(error => {
+                Swal.close();
+                isProcessing = false;
+                console.error('請求錯誤:', error);
+
+                Swal.fire({
+                    icon: 'error',
+                    title: '系統錯誤',
+                    text: '請稍後再試'
+                });
+            });
+        }
+
+        // AJAX登入功能 - 簡化版本
+        function loginWithAjax() {
+            const account = document.getElementById('faccount').value;
+            const password = document.getElementById('fpassword').value;
+
+            // 表單驗證
+            if (!account || !password) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '輸入錯誤',
+                    text: '帳號和密碼不能為空'
+                });
+                return false;
+            }
+
+            // 使用通用請求函數
+            sendAuthRequest(
+                '@Url.Action("Login", "Account")',
+                {
+                    faccount: account,
+                    fpassword: password
+                },
+                // 成功回調
+                (data) => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '登入成功',
+                        text: '即將進入系統',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = data.redirectUrl || '@Url.Action("FrontIndex", "FrontHome")';
+                    });
+                },
+                // 失敗回調
+                (data) => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '登入失敗',
+                        text: data.message || '請重新輸入'
+                    });
+                }
+            );
+
+            return false; // 阻止表單預設提交行為
+        }
+
+        // AJAX註冊功能
+        function registerWithAjax() {
+            // 獲取表單數據
+            const registerAccount = document.getElementById('register-account').value;
+            const registerEmail   = document.getElementById('register-email').value;  // <-- 新增
+            const registerPhone    = document.getElementById('register-phone').value.trim();
+            const registerPassword = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const registerName = document.getElementById('register-name').value;
+
+            // 表單驗證
+            if (!registerAccount || !registerPassword || !confirmPassword) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '輸入錯誤',
+                    text: '所有必填欄位都不能為空'
+                });
+                return false;
+            }
+
+            if (registerPassword !== confirmPassword) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '密碼不匹配',
+                    text: '兩次輸入的密碼不一致'
+                });
+                return false;
+            }
+
+            if (registerPassword.length < 6) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '密碼太短',
+                    text: '密碼長度必須至少為6個字符'
+                });
+                return false;
+            }
+
+            // 使用通用請求函數
+            sendAuthRequest(
+                '@Url.Action("Register", "Account")',
+                {
+                    faccount: registerAccount,
+                    femail: registerEmail,
+                    fphone: registerPhone,
+                    fpassword: registerPassword,
+                    fname: registerName
+                 
+                },
+                // 成功回調
+                (data) => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '註冊成功',
+                        text: '請登入您的新帳號',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // 切換到登入表單並填入剛註冊的帳號
+                        document.querySelector('.tab-btn[data-form="login"]').click();
+                        document.getElementById('faccount').value = registerAccount;
+                        document.getElementById('fpassword').focus();
+                    });
+                },
+                // 失敗回調
+                (data) => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '註冊失敗',
+                        text: data.message || '請重試'
+                    });
+                }
+            );
+
+            return false; // 阻止表單預設提交行為
+        }
+    </script>
+}

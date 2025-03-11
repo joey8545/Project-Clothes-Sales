@@ -1,0 +1,1059 @@
+﻿@model System.Collections.Generic.Dictionary<string, string>
+@{
+    Layout = "~/Views/Shared/Front_Layout.cshtml";
+}
+
+<div class="container" id="app">
+    <div class="row">
+        <div class="checkout_wthree col-sm-7 py-3">
+            <div class="container">
+                <div class="address_form">
+                    <h3>訂單資訊</h3> 
+                    <p></p>
+                    <div @@submit.prevent="submitForm">
+                        <div class="first-row form-group">
+
+                            <div class="controls">
+                                <label class="control-label">
+                                    訂購人姓名 <span class="required">*</span>
+                                </label>
+                                <input v-model="formData.name"
+                                       class="billing-address-name form-control"
+                                       type="text"
+                                       required />
+                                <span v-if="errors.name">此欄位為必填。</span>
+                            </div>
+
+                            <div class="controls">
+                                <label class="control-label">
+                                    縣/市 <span class="required">*</span>
+                                </label>
+                                <select v-model="formData.city"
+                                        class="form-control option-fieldf"
+                                        @@change="updateTownshipOptions"
+                                        required>
+                                    <option value="">請選擇</option>
+                                    <option v-for="(city, index) in cities" :key="index" :value="city">{{ city }}</option>
+                                </select>
+                                <span v-if="errors.city">此欄位為必填。</span>
+                            </div>
+
+                            <div class="controls">
+                                <label class="control-label">
+                                    鄉鎮市 <span class="required">*</span>
+                                </label>
+                                <select v-model="formData.township"
+                                        class="form-control option-fieldf"
+                                        required>
+                                    <option value="">請選擇</option>
+                                    <option v-for="(township, index) in townships" :key="index" :value="township">{{ township }}</option>
+                                </select>
+                                <span v-if="errors.township">此欄位為必填。</span>
+                            </div>
+
+                            <div class="controls">
+                                <label class="control-label">
+                                    地址 <span class="required">*</span>
+                                </label>
+                                <input v-model="formData.address"
+                                       class="billing-address-name form-control"
+                                       type="text"
+                                       placeholder="街道地址"
+                                       required />
+                                <span v-if="errors.address">此欄位為必填。</span>
+                            </div>
+
+                            <div class="card_number_grids">
+                                <div class="card_number_grid_left">
+                                    <div class="controls">
+                                        <label class="control-label">
+                                            聯絡電話 <span class="required">*</span>
+                                        </label>
+                                        <input v-model="formData.phone"
+                                               class="form-control"
+                                               type="tel"
+                                               required />
+                                        <span v-if="errors.phone">請輸入有效的電話號碼。</span>
+                                    </div>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+
+                            <div class="controls">
+                                <label class="control-label">
+                                    電子郵件 <span class="required">*</span>
+                                </label>
+                                <input v-model="formData.email"
+                                       class="form-control"
+                                       type="email"
+                                       required />
+                                <span v-if="errors.email">請輸入有效的電子郵件。</span>
+                            </div>
+                        </div>
+                        <div class="controls">
+                            <label class="control-label">
+                                <input type="checkbox" v-model="useMemberData" @@change="fillMemberData" />
+                                同會員資料
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4 cart-total">
+            <div class="total-item">
+                <h5 class="price-details">
+                    購買商品: (共{{ cartItems.length }}件)
+                    <a href="~/FrontHome/Cart" id="" class="return">編輯購物車</a>
+                    <i :class="cartVisible ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" @@click="toggleCart"></i>
+                </h5>
+                <div v-if="cartVisible" class="cart-item cyc">
+                    <div class="cart-block"
+                         v-for="(item, index) in cartItems"
+                         :key="index">
+                        <div class="cart-img-con1" :style="{ display: item.pId === 0 ? 'block' : 'none' }">
+                            <img :src="item.photo0" class="img-responsive" alt="" />
+                        </div>
+                        <div class="cart-img-con1" :style="{ display: item.pId !== 0 ? 'block' : 'none' }">
+                            <img :src="item.photo0 && item.photo0 !== '' ? `${baseAddress}/images/${item.photo0}` : '/images/no_image.jpg'" class="img-responsive" alt="" />
+                        </div>
+                        <div class="cart-item-info">
+                            <p>{{ item.pId === 0 ? item.pType : item.pName }}</p>
+                            <pre>{{ item.pCategory }}</pre>
+
+                            <ul class="qty">
+                                <li>
+                                    <p>尺寸 : {{ item.pSize }}</p>
+                                </li>
+                            </ul>
+                            <ul class="qty">
+                                <li>
+                                    <p>顏色 : {{ item.pColor }}</p>
+                                </li>
+                            </ul>
+                            <ul class="qty" :style="{ display: item.pId === 0 ? 'block' : 'none' }">
+                                <li><p>文字(正面) : {{ item.customText0 }}</p></li>
+                            </ul>
+                            <ul class="qty" :style="{ display: item.pId === 0 ? 'block' : 'none' }">
+                                <li><p>文字(背面) : {{ item.customText1 }}</p></li>
+                            </ul>
+                            <ul class="qty">
+                                <li>
+                                    <p>數量 : {{ item.pCount }}</p>
+                                </li>
+                            </ul>
+                            <ul class="qty">
+                                <li>
+                                    <p>價格 : {{ item.pPrice }}</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-summary-container">
+                <p></p>
+                <a class="continue" href="~/FrontHome/FrontIndex">繼續購物</a>
+                <div class="price-details">
+                    <h3>您的訂單</h3>
+                    <span>小計</span>
+                    <span class="total1">NT${{ price }}</span>
+                    <span>折價券</span>
+                    <span class="total1">-NT${{ dcprice }}</span>
+                    <span>宅配到府</span>
+                    <span class="total1">+NT$60</span>
+                    <span>總計</span>
+                    <span class="total1" style="font-weight: bold;">NT${{ totalprice }}</span>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="total_price">
+                    <div class="last_price">
+                        <p></p>
+                        <h5>選擇付款方式 :<span class="required">*<span v-if="errors.payment">請選擇付款方式。</span></span></h5>
+                        <div class="payment-methods">
+                            <label class="payment-option">
+                                <input type="radio" name="payment" value="CreditCard" v-model="formData.payment" />
+                                信用卡付款
+                            </label>
+                        </div>
+                        <div>
+                            <p></p>
+                            <p>
+                                我們會使用你的個人資料來處理你的訂單、支援擬在本網站中的使用體驗，以及用於
+                                <a href="" @@click="Privacy">隱私權政策</a>中說明的其他用途。
+                            </p>
+                        </div>
+                        <br />
+                        <div class="controls">
+                            <label class="control-label">
+                                <input type="checkbox"
+                                       name="terms"
+                                       v-model="formData.terms"
+                                       :true-value="true"
+                                       :false-value="false"
+                                       required />
+                                我同意 <a href="" @@click="Terms">條款與條件</a>
+                                <span v-if="errors.check"> (請勾選)</span>
+                            </label>
+
+                            <a class="order" href="#" @@click="handleOrder">下單購買</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript"
+            src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js" integrity="sha512-v8+bPcpk4Sj7CKB11+gK/FnsbgQ15jTwZamnBf/xDmiQDcgOIYufBo6Acu1y30vrk8gg5su4x0CG3zfPaq5Fcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+        var vueApp = {
+            data() {
+                return {
+                    formData: {
+                        price: 0,
+                        dcprice: 0,
+                        totalprice: 0,
+                        name: "",
+                        city: "",
+                        township: "",
+                        address: "",
+                        phone: "",
+                        email: "",
+                        terms: false,
+                        useMemberData: false,
+                        memberId: "",
+                    },
+                    cities: [
+                        '臺北市', '新北市', '基隆市', '桃園市', '新竹縣', '新竹市', '苗栗縣', '臺中市',
+                        '南投縣', '彰化縣', '雲林縣', '嘉義縣', '嘉義市', '臺南市', '高雄市', '屏東縣',
+                        '宜蘭縣', '花蓮縣', '臺東縣', '澎湖縣', '金門縣', '連江縣'
+                    ],
+                    townshipsData: {
+                        '臺北市': [
+                            '中正區', '大同區', '中山區', '萬華區', '信義區', '松山區', '大安區', '南港區', '北投區', '內湖區', '士林區', '文山區'
+                        ],
+                        '新北市': [
+                            '板橋區', '新莊區', '泰山區', '林口區', '淡水區', '金山區', '八里區', '萬里區', '石門區', '三芝區', '瑞芳區', '汐止區', '平溪區', '貢寮區', '雙溪區', '深坑區', '石碇區', '新店區', '坪林區', '烏來區', '中和區', '永和區', '土城區', '三峽區', '樹林區', '鶯歌區', '三重區', '蘆洲區', '五股區'
+                        ],
+                        '基隆市': [
+                            '仁愛區', '中正區', '信義區', '中山區', '安樂區', '暖暖區', '七堵區'
+                        ],
+                        '桃園市': [
+                            '桃園區', '中壢區', '平鎮區', '八德區', '楊梅區', '蘆竹區', '龜山區', '龍潭區', '大溪區', '大園區', '觀音區', '新屋區', '復興區'
+                        ],
+                        '新竹縣': [
+                            '竹北市', '竹東鎮', '新埔鎮', '關西鎮', '峨眉鄉', '寶山鄉', '北埔鄉', '橫山鄉', '芎林鄉', '湖口鄉', '新豐鄉', '尖石鄉', '五峰鄉'
+                        ],
+                        '新竹市': [
+                            '東區', '北區', '香山區'
+                        ],
+                        '苗栗縣': [
+                            '苗栗市', '通霄鎮', '苑裡鎮', '竹南鎮', '頭份鎮', '後龍鎮', '卓蘭鎮', '西湖鄉', '頭屋鄉', '公館鄉', '銅鑼鄉', '三義鄉', '造橋鄉', '三灣鄉', '南庄鄉', '大湖鄉', '獅潭鄉', '泰安鄉'
+                        ],
+                        '臺中市': [
+                            '中區', '東區', '南區', '西區', '北區', '北屯區', '西屯區', '南屯區', '太平區', '大里區', '霧峰區', '烏日區', '豐原區', '后里區', '東勢區', '石岡區', '新社區', '和平區', '神岡區', '潭子區', '大雅區', '大肚區', '龍井區', '沙鹿區', '梧棲區', '清水區', '大甲區', '外埔區', '大安區'
+                        ],
+                        '南投縣': [
+                            '南投市', '埔里鎮', '草屯鎮', '竹山鎮', '集集鎮', '名間鄉', '鹿谷鄉', '中寮鄉', '魚池鄉', '國姓鄉', '水里鄉', '信義鄉', '仁愛鄉'
+                        ],
+                        '彰化縣': [
+                            '彰化市', '員林鎮', '和美鎮', '鹿港鎮', '溪湖鎮', '二林鎮', '田中鎮', '北斗鎮', '花壇鄉', '芬園鄉', '大村鄉', '永靖鄉', '伸港鄉', '線西鄉', '福興鄉', '秀水鄉', '埔心鄉', '埔鹽鄉', '大城鄉', '芳苑鄉', '竹塘鄉', '社頭鄉', '二水鄉', '田尾鄉', '埤頭鄉', '溪州鄉'
+                        ],
+                        '雲林縣': [
+                            '斗六市', '斗南鎮', '虎尾鎮', '西螺鎮', '土庫鎮', '北港鎮', '莿桐鄉', '林內鄉', '古坑鄉', '大埤鄉', '崙背鄉', '二崙鄉', '麥寮鄉', '臺西鄉', '東勢鄉', '褒忠鄉', '四湖鄉', '口湖鄉', '水林鄉', '元長鄉'
+                        ],
+                        '嘉義縣': [
+                            '太保市', '朴子市', '布袋鎮', '大林鎮', '民雄鄉', '溪口鄉', '新港鄉', '六腳鄉', '東石鄉', '義竹鄉', '鹿草鄉', '水上鄉', '中埔鄉', '竹崎鄉', '梅山鄉', '番路鄉', '大埔鄉', '阿里山鄉'
+                        ],
+                        '嘉義市': [
+                            '東區', '西區'
+                        ],
+                        '臺南市': [
+                            '中西區', '東區', '南區', '北區', '安平區', '安南區', '永康區', '歸仁區', '新化區', '左鎮區', '玉井區', '楠西區', '南化區', '仁德區', '關廟區', '龍崎區', '官田區', '麻豆區', '佳里區', '西港區', '七股區', '將軍區', '學甲區', '北門區', '新營區', '後壁區', '白河區', '東山區', '六甲區', '下營區', '柳營區', '鹽水區', '善化區', '大內區', '山上區', '新市區', '安定區'
+                        ],
+                        '高雄市': [
+                            '楠梓區', '左營區', '鼓山區', '三民區', '鹽埕區', '前金區', '新興區', '苓雅區', '前鎮區', '小港區', '旗津區', '鳳山區', '大寮區', '鳥松區', '林園區', '仁武區', '大樹區', '大社區', '岡山區', '路竹區', '橋頭區', '梓官區', '彌陀區', '永安區', '燕巢區', '田寮區', '阿蓮區', '茄萣區', '湖內區', '旗山區', '美濃區', '內門區', '杉林區', '甲仙區', '六龜區', '茂林區', '桃源區', '那瑪夏區'
+                        ],
+                        '屏東縣': [
+                            '屏東市', '潮州鎮', '東港鎮', '恆春鎮', '萬丹鄉', '長治鄉', '麟洛鄉', '九如鄉', '里港鄉', '鹽埔鄉', '高樹鄉', '萬巒鄉', '內埔鄉', '竹田鄉', '新埤鄉', '枋寮鄉', '新園鄉', '崁頂鄉', '林邊鄉', '南州鄉', '佳冬鄉', '琉球鄉', '車城鄉', '滿州鄉', '枋山鄉', '霧台鄉', '瑪家鄉', '泰武鄉', '來義鄉', '春日鄉', '獅子鄉', '牡丹鄉', '三地門鄉'
+                        ],
+                        '宜蘭縣': [
+                            '宜蘭市', '羅東鎮', '蘇澳鎮', '頭城鎮', '礁溪鄉', '壯圍鄉', '員山鄉', '冬山鄉', '五結鄉', '三星鄉', '大同鄉', '南澳鄉'
+                        ],
+                        '花蓮縣': [
+                            '花蓮市', '鳳林鎮', '玉里鎮', '新城鄉', '吉安鄉', '壽豐鄉', '秀林鄉', '光復鄉', '豐濱鄉', '瑞穗鄉', '萬榮鄉', '富里鄉', '卓溪鄉'
+                        ],
+                        '臺東縣': [
+                            '臺東市', '成功鎮', '關山鎮', '長濱鄉', '海端鄉', '池上鄉', '東河鄉', '鹿野鄉', '延平鄉', '卑南鄉', '金峰鄉', '大武鄉', '達仁鄉', '綠島鄉', '蘭嶼鄉', '太麻里鄉'
+                        ],
+                        '澎湖縣': [
+                            '馬公市', '湖西鄉', '白沙鄉', '西嶼鄉', '望安鄉', '七美鄉'
+                        ],
+                        '金門縣': [
+                            '金城鎮', '金湖鎮', '金沙鎮', '金寧鄉', '烈嶼鄉', '烏坵鄉'
+                        ],
+                        '連江縣': [
+                            '南竿鄉', '北竿鄉', '莒光鄉', '東引鄉'
+                        ]
+                    },
+                    townships: [],
+                    baseAddress: "https://localhost:7279",
+                    cartItems: [],
+                    errors: {},
+                    cartVisible: false,
+                    MerchantTradeNo: "@Model["MerchantTradeNo"]",
+                    MerchantTradeDate: "@Model["MerchantTradeDate"]",
+                    TradeDesc: "@Model["TradeDesc"]",
+                    ItemName: "@Html.Raw(@Model["ItemName"])",
+                    TotalAmount: "@Model["TotalAmount"]",
+                    ExpireDate: "@Model["ExpireDate"]",
+                    ReturnURL: "@Model["ReturnURL"]",
+                    OrderResultURL: "@Model["OrderResultURL"]",
+                    PaymentInfoURL: "@Model["PaymentInfoURL"]",
+                    ClientRedirectURL: "@Model["ClientRedirectURL"]",
+                    MerchantID: "@Model["MerchantID"]",
+                    IgnorePayment: "@Model["IgnorePayment"]",
+                    PaymentType: "@Model["PaymentType"]",
+                    ChoosePayment: "@Model["ChoosePayment"]",
+                    EncryptType: "@Model["EncryptType"]",
+                    CheckMacValue: "@Model["CheckMacValue"]",
+                };
+            },
+            mounted: function () {
+                this.getCartItems();
+                this.loadFromStorage();
+                this.getMemberId();
+            },
+            methods: {
+                getCartItems: function () {
+                    let _this = this;
+
+                    axios.post(`${_this.baseAddress}/Ajax/GetCartItems`, {})
+                        .then(response => {
+                            if (response.data) {
+                                _this.cartItems = response.data;
+                            } else {
+                                swal("請先登入會員", { icon: "warning" });
+                            }
+                        })
+                        .catch(err => {
+                            console.error("錯誤:", err.message);
+                        });
+                },
+                updateTownshipOptions() {
+                    const selectedCity = this.formData.city;
+                    this.townships = this.townshipsData[selectedCity] || [];
+                    this.formData.township = "";
+                },
+                getMemberId() {
+                    let _this = this;
+                    axios.get(`${_this.baseAddress}/Ajax/GetMemberId`)
+                        .then(response => {
+                            _this.memberId = response.data.memberId; 
+                        })
+                        .catch(error => {
+                            console.error("無此會員資料", error);
+                        });
+                },
+                fillMemberData() {
+                    let _this = this;
+                    
+                    if (this.useMemberData) {
+                        axios.get(`${_this.baseAddress}/Ajax/GetMemberInfo`, {
+                            params: { memberId: _this.memberId } 
+                        })
+                            .then(response => {
+                                if (response.data) {
+                                    _this.formData.name = response.data.name;
+                                    _this.formData.phone = response.data.phone;
+                                    _this.formData.email = response.data.email;
+                                }
+                            })
+                            .catch(error => {
+                                console.error("無此會員資料", error);
+                            });
+                    } else {
+                        _this.formData.name = "";
+                        _this.formData.phone = "";
+                        _this.formData.email = "";
+                    }
+                },
+                Privacy(event) {
+                    event.preventDefault();
+                    Swal.fire({
+                        title: 'UniPay 隱私權政策',
+                        html: `<div style="text-align: left;">
+                                歡迎使用 UniPay 服務。本隱私權政策由 UniPay 公司（以下稱「本公司」）制定，並將根據個人資料保護法及本隱私權政策蒐集、處理與利用您的個人資料。請您在使用本平台前，仔細閱讀並同意本政策。若您不同意本政策之全部或部分內容，請停止使用本平台服務。
+
+                                <br><br>1. 本隱私權政策適用範圍<br>
+                                本隱私權政策適用於您在使用 UniPay 服務時所提供的個人資料，並僅適用於本公司經營的網站。若您透過本平台連結至第三方網站，該網站的隱私權政策與本公司無關，請自行查閱。
+
+                                <br><br>2. 個人資料蒐集與使用目的<br>
+                                本公司可能會蒐集以下個人資料：姓名、聯絡方式（如電子郵件、手機號碼）、住址、支付資訊等。您的個人資料將用於以下目的：<br>
+                                        <br>
+                                *提供產品與服務<br>
+                                *進行會員管理及客戶服務<br>
+                                *行銷活動與推廣<br>
+                                *提供更好的網站體驗與服務改進
+
+                                <br><br>3. 個人資料的儲存與保護<br>
+                                我們將依據法律要求，對您的個人資料進行必要的保護。您的個人資料會被儲存在本公司伺服器中，並且僅限於經授權的員工使用。
+
+                                <br><br>4. 個人資料權利<br>
+                                您有權查詢、更正、刪除您的個人資料。若您希望行使這些權利，請聯絡我們的客服部門。
+
+                                <br><br>5. 資料分享與第三方合作<br>
+                                本公司不會將您的個人資料販售給第三方。但在某些情況下，若為提供服務所需，本公司可能會與合作夥伴共享您的資料，並確保這些第三方遵守相同的隱私保護標準。
+
+                                <br><br>6. 隱私政策變更<br>
+                                若本隱私權政策有任何變更，我們將會在本平台上公告並提供更新版本。若您繼續使用本平台服務，即表示您同意接受新政策的條款。
+
+                                <br><br>7. 聯絡方式<br>
+                                如對本隱私權政策或您的個人資料有任何疑問或要求，請聯絡我們的客服部門。
+                               </div>`
+                    });
+                },
+                Terms(event) {
+                    event.preventDefault();
+                    Swal.fire({
+                        title: 'UniPay 服務條款',
+                        html: `<div style="text-align: left;">
+                                歡迎使用 UniPay 服務（以下稱「本平台」）。本平台由 UniPay 公司（以下稱「本公司」）經營，並根據以下條款提供服務。請在使用本平台前，仔細閱讀並同意以下條款，若您不同意任何條款，請勿使用本平台。
+
+                                <br><br>1. 同意條款<br>
+                                您同意在使用本平台前，已詳細閱讀並同意遵守本平台的所有使用條款。您進行購物或使用服務，即表示您已同意接受本條款及本公司之後的任何修改。如不同意條款修改，請停止使用本平台。
+
+                                <br><br>2. 帳號與密碼<br>
+                                您需妥善保管帳號與密碼，並承擔由此產生的所有責任。如帳號或密碼被盜用，請即時通知本公司以防止損失擴大。
+
+                                <br><br>3. 服務與交易<br>
+                                本平台所提供之商品數量有限，請盡快完成購買程序。付款後，您可依消費者保護法享有7天內的鑑賞期，但若商品已非全新狀態，將影響退款權益。
+
+                                <br><br>4. 個人資料保護<br>
+                                本公司會根據隱私權政策收集並處理您的個人資料，僅為提供相關服務與行銷目的。
+
+                                <br><br>5. 責任與免責<br>
+                                本平台致力於提供穩定服務，但如因天災、系統故障等不可控因素造成服務中斷，將不負責賠償責任。您在本平台的交易與使用行為若違反條款，本公司有權暫停或終止您的服務。
+
+                                <br><br>6. 服務中止<br>
+                                本公司可於必要時中止或終止部分或全部服務，並不負通知義務。服務中斷期間，您無法使用平台，且本公司對因此造成的任何損失不負責。
+
+                                <br><br>7. 智慧財產<br>
+                                本平台所有內容，包括但不限於商品描述、圖片、商標等，均屬於本公司或授權人所有，任何未經授權的使用將構成侵權。
+
+                                <br><br>8. 修改條款<br>
+                                本公司保留隨時修改條款的權利。修改後的條款會公布於本平台，您繼續使用服務即表示接受新的條款。
+
+                                <br><br>9. 法律適用<br>
+                                本條款適用台灣法律。如有爭議，雙方應協商解決；若無法協商，則提交本公司所在地法院訴訟解決。
+                               </div>`
+                    });
+                },
+                handleOrder() {
+                    this.submitForm();
+
+                    if (Object.keys(this.errors).length === 0) {
+                        this.SaveToOrder();
+                    }
+                },
+                submitForm() {
+                    this.errors = {};
+                    let isValid = true;
+
+                    if (!this.formData.name) {
+                        this.errors.name = true;
+                        isValid = false;
+                    }
+
+                    if (!this.formData.city) {
+                        this.errors.city = true;
+                        isValid = false;
+                    }
+
+                    if (!this.formData.township) {
+                        this.errors.township = true;
+                        isValid = false;
+                    }
+
+                    if (!this.formData.address) {
+                        this.errors.address = true;
+                        isValid = false;
+                    }
+
+                    const phonePattern = /^09\d{8}$/;
+                    if (!this.formData.phone.match(phonePattern)) {
+                        this.errors.phone = true;
+                        isValid = false;
+                    }
+
+                    const emailPattern = /^[a-zA-Z0-9._-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+                    if (!this.formData.email.match(emailPattern)) {
+                        this.errors.email = true;
+                        isValid = false;
+                    }
+
+                    if (!this.formData.payment) {
+                        this.errors.payment = true;
+                        isValid = false;
+                    }
+
+                    if (!this.formData.terms) {
+                        this.errors.check = true;
+                        isValid = false;
+                    }
+
+                    if (!isValid) {
+                        swal("請修正表單中的錯誤。", { icon: "warning" });
+                        return;
+                    }
+                },
+                toggleCart() {
+                    this.cartVisible = !this.cartVisible;
+                },
+                SaveToOrder: function () {
+                    let _this = this;
+
+                    if (!_this.cartItems || _this.cartItems.length === 0) {
+                        swal("請先將商品加入購物車再下訂單", { icon: "warning" })
+                        return;
+                    }
+
+                    let orderData = {
+                        MerchantTradeNo: _this.MerchantTradeNo,
+                        MerchantTradeDate: _this.MerchantTradeDate,
+                        TotalAmount: _this.TotalAmount,
+                        TradeDesc: "無",
+                        ItemName: _this.ItemName,
+                        ExpireDate: _this.ExpireDate,
+                        CustomField1: "", CustomField2: "", CustomField3: "", CustomField4: "",
+                        ReturnURL: _this.ReturnURL,
+                        OrderResultURL: _this.OrderResultURL,
+                        PaymentInfoURL: _this.PaymentInfoURL,
+                        ClientRedirectURL: _this.ClientRedirectURL,
+                        MerchantID: _this.MerchantID,
+                        IgnorePayment: _this.IgnorePayment,
+                        PaymentType: _this.PaymentType,
+                        ChoosePayment: _this.ChoosePayment,
+                        EncryptType: _this.EncryptType,
+                        CheckMacValue: _this.CheckMacValue,
+                    };
+
+                    let request = {
+                        OPrice: _this.price,
+                        ODiscountedprice: _this.dcprice,
+                        OTotalPrice: _this.totalprice,
+                        OName: _this.formData.name,
+                        OAddress: `${_this.formData.city}${_this.formData.township}${_this.formData.address}`,
+                        OPhone: _this.formData.phone,
+                        OEmail: _this.formData.email,
+                        OStatus: "待出貨",
+                        OPayment: false,
+                        orderId: _this.MerchantTradeNo,
+                        MerchantTradeDate: _this.MerchantTradeDate,
+                    };
+                     
+                    axios.post(`${_this.baseAddress}/Ajax/SaveToOrder`, request, {
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8"
+                        }
+                    })
+                        .then(response => {
+
+                            _this.SaveToOrderDetail(response.data.orderID)
+                                .then(() => {
+                                    let couponId = localStorage.getItem("couponId");  
+
+                                    if (couponId) { 
+                                        return _this.useMemberCoupon();  
+                                    } else { 
+                                        return Promise.resolve();  
+                                    }
+                                })
+                                .then(() => {
+                                    return _this.RemoveCartItems();
+                                })
+                                .then(() => {
+                                    let form = document.createElement("form");
+                                    form.method = "POST";
+                                    form.action = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5";
+
+                                    Object.keys(orderData).forEach(key => {
+                                        let input = document.createElement("input");
+                                        input.type = "hidden";
+                                        input.name = key;
+                                        input.value = orderData[key];
+                                        form.appendChild(input);
+                                    });
+
+                                    document.body.appendChild(form);
+                                    form.submit();
+                                })
+                                .catch(error => {
+                                    console.error("訂單處理失敗", error);
+                                });
+                        })
+                        .catch(error => {
+                            console.error("訂單未成功提交", error);
+                        });
+                },
+                SaveToOrderDetail: function (orderID) {
+                    let _this = this;
+                    let orderDetails = _this.cartItems.map(item => {
+                        return {
+                            Oid: orderID,
+                            PId: item.pId,
+                            PName: item.pName,
+                            PCount: item.pCount,
+                            PSize: item.pSize,
+                            PColor: item.pColor,
+                            CustomText0: item.customText0,
+                            CustomText1: item.customText1,
+                            CustomPhoto0: item.customPhoto0,
+                            CustomPhoto1: item.customPhoto1,
+                            Photo0: item.photo0,
+                            Photo1: item.photo1,
+                            PPrice: item.pPrice
+                        };
+                    });
+
+                    return axios.post(`${_this.baseAddress}/Ajax/SaveToOrderDetail`, orderDetails)
+                        .then(response => {
+                            _this.formData = {
+                                price: 0,
+                                dcprice: 0,
+                                totalprice: 0,
+                                name: "",
+                                city: "",
+                                township: "",
+                                address: "",
+                                phone: "",
+                                email: "",
+                                terms: false,
+                            };
+                            _this.errors = {};
+                            localStorage.removeItem('price');
+                            localStorage.removeItem("dcprice");   
+                            localStorage.removeItem('totalprice');
+                            swal("訂單已成功提交!", { icon: "success" });
+                        })
+                        .catch(error => {
+                            console.error("訂單詳情儲存失敗", error);
+                            throw error;
+                        });
+                },
+                useMemberCoupon: function () {
+                    let _this = this;
+                    let couponId = localStorage.getItem("couponId");   
+
+                    axios.put(`${_this.baseAddress}/Ajax/UseMemberCoupon`,
+                        { couponId: parseInt(couponId) },  
+                        { headers: { "Content-Type": "application/json" } }  
+                    )
+                        .then(response => {  
+                            localStorage.removeItem("couponId");   
+                        })
+                        .catch(error => {
+                            console.error("折價券無法使用", error); 
+                        });
+                },
+                RemoveCartItems: function () {
+                    let _this = this;
+                    let cartItemIds = _this.cartItems.map(item => item.id);
+
+                    return axios.post(`${_this.baseAddress}/Ajax/RemoveCartItems`, cartItemIds)
+                        .then(response => {
+                            _this.cartItems = [];
+                        })
+                        .catch(error => {
+                            throw error;
+                        });
+                },
+                loadFromStorage() {
+                    const savedPrice = localStorage.getItem('price');
+                    const savedDiscountPrice = localStorage.getItem('dcprice');
+                    const savedTotalPrice = localStorage.getItem('totalprice');
+
+                    if (savedPrice) {
+                        this.price = parseFloat(savedPrice);
+                    }
+                    if (savedDiscountPrice) {
+                        this.dcprice = parseFloat(savedDiscountPrice);
+                    }
+                    if (savedTotalPrice) {
+                        this.totalprice = parseFloat(savedTotalPrice);
+                    }
+                }
+            }
+        }
+        var app = Vue.createApp(vueApp).mount("#app");
+    </script>
+}
+
+@section Styles {
+    <link href="https://fonts.googleapis.com/css2?family=Cactus+Classical+Serif&family=LXGW+WenKai+TC&family=Liu+Jian+Mao+Cao&family=Long+Cang&family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+
+    <style scoped>
+
+        .first-row .controls {
+            margin-bottom: 15px;
+        }
+
+        .control-label {
+            font-size: 1em;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .controls span {
+            color: red;
+            font-size: 0.9em;
+        }
+
+        .required {
+            color: red;
+        }
+
+        .submit.check_out {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .submit.check_out:hover {
+                background-color: #0056b3;
+            }
+
+            .submit.check_out:focus {
+                outline: none;
+            }
+
+        .card_number_grids {
+            margin-top: 15px;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        .return {
+            color: cornflowerblue;
+        }
+
+        .cart-sec {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1.5px dashed #ddd;
+            padding-bottom: 5px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            width: 100%;
+            flex-direction: column;
+        }
+
+
+        .cart-img-con1 {
+            width: 45%;
+            height: 150px;
+            padding: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+            .cart-img-con1 img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+
+        .cart-item-info {
+            width: 55%;
+            padding-left: 15px;
+            padding-right: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+        }
+
+            .cart-item-info p {
+                color: #000;
+                font-size: 14px;
+                font-weight: bold;
+                margin-bottom: 0em;
+            }
+
+            .cart-item-info pre {
+                display: block;
+                font-weight: bold;
+                font-size: 12px;
+                margin: 0.2em 0 0.1em 0;
+            }
+
+        .cart-block {
+            width: 95%;
+            display: flex;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .price-details {
+            padding-bottom: 10px;
+        }
+
+            .price-details a {
+                font-size: 14px;
+                float: right;
+            }
+
+            .price-details h3 {
+                color: #000;
+                font-size: 1.4em;
+                margin-bottom: 1em;
+            }
+
+            .price-details span {
+                width: 50%;
+                float: left;
+                border-bottom: 1px solid #ddd9d9;
+                margin-bottom: 0.5em;
+                font-size: 1em;
+                color: #000;
+                line-height: 2em;
+            }
+
+        .payment-methods {
+            padding-top: 10px;
+        }
+
+
+        .num {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            margin: 15px;
+        }
+
+            .quantity-controls button {
+                padding: 5px 10px;
+                font-size: 22px;
+                margin: 0 5px;
+                cursor: pointer;
+                border: none;
+                outline: none;
+                background-color: transparent;
+            }
+
+            .quantity-controls input.quantity {
+                width: 40px;
+                text-align: center;
+                padding: 5px;
+                font-size: 16px;
+            }
+
+
+        .delivery {
+            width: 10%;
+        }
+
+        .qty {
+            margin-bottom: 5px;
+        }
+
+        ul.qty {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+            ul.qty li {
+                display: inline-block;
+                margin-right: 5%;
+            }
+
+                ul.qty li p {
+                    font-size: 10px;
+                    color: #555;
+                    margin: 0;
+                }
+
+
+        .total-item,
+        .cart-items {
+            margin-top: 2em;
+            padding-bottom: 2em;
+        }
+
+        .total-item {
+            width: 100%;
+            box-shadow: 0 1px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+
+            .total-item h3 {
+                color: #333;
+                font-size: 1.4em;
+                margin-bottom: 1em;
+            }
+
+        .total1 {
+            text-align: right;
+        }
+
+        .order-summary-container {
+            box-shadow: 0 1px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+
+        .close1,
+        .close2 {
+            font-size: 1.5em;
+            color: #000;
+            cursor: pointer;
+            position: absolute;
+            right: 0px;
+            top: 0px;
+            transition: color 0.2s ease-in-out;
+        }
+
+            .close1:before,
+            .close2:before {
+                content: "\f00d"; /* Font Awesome 'x' icon */
+                font-family: "Font Awesome 5 Free";
+                font-weight: 900;
+                font-size: 1em;
+            }
+
+
+        a.order,
+        a.continue {
+            background: hsla(224, 50%, 60%, 0.75);
+            padding: 10px 20px;
+            font-family: "Lato", sans-serif;
+            font-size: 1em;
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            font-weight: 600;
+            text-align: center;
+            margin: 1em 0 1em 0;
+        }
+
+            a.order:hover,
+            a.continue:hover {
+                background: #000;
+            }
+
+
+        .check h1 {
+            font-size: 1.5em;
+            margin-bottom: 1em;
+            font-family: "Lato", sans-serif;
+            text-align: left;
+        }
+
+            .check h1::after {
+                content: "";
+                display: block;
+                width: 75%;
+                height: 2px;
+                background-color: #ddd;
+                margin-left: 0;
+                margin-top: 10px;
+            }
+
+
+        .checkout_wthree {
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 1% 1% 1% 3%;
+        }
+
+        h4 {
+            border-bottom: 2px solid #dddbdb;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            width: 94%;
+        }
+
+        input.form-control {
+            margin-bottom: 0;
+        }
+
+        select.form-control {
+            margin-bottom: 0;
+        }
+
+        .form-control {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 15px;
+        }
+
+            .form-control:focus {
+                border-color: #007bff;
+                outline: none;
+                box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+            }
+
+        .option-fieldf {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 15px;
+        }
+
+        #cartItems {
+            display: none;
+        }
+
+        .show-items {
+            display: block;
+        }
+
+        #toggleCartItems {
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+            #toggleCartItems:hover {
+                text-decoration: underline;
+            }
+    </style>
+}

@@ -1,0 +1,94 @@
+﻿@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_Layout1.cshtml";
+}
+<head>
+    <style>
+        body {
+            background-color: #f6f9ff;
+        }
+
+
+        .sign {
+            background-color: ghostwhite;
+            width: 400px;
+            height: 400px;
+            border: 1px solid rgba(184, 183, 183,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            box-shadow: 2px 2px 5px rgba(184, 183, 183);
+        }
+
+        .sign-form {
+            width: 350px;
+            height: 300px;
+        }
+
+        .bi-google,
+        .bi-facebook,
+        .bi-line {
+            color: lightslategray;
+            font-size: 25px;
+        }
+        .title-name{
+            color: #25458ac7;
+            font-size:30px;
+            letter-spacing:5px;
+        }
+        .btn-login{
+            background-color: steelblue;
+            color:white;
+        }
+
+    </style>
+</head>
+<div class="d-flex justify-content-center">
+    <div>
+        <div class="my-3 title-name text-center">
+            UniPay
+        </div>
+        <div class="sign">
+            @using (Html.BeginForm())
+            {
+                <div class="text-center fs-4 fw-bold ">
+                    會員登入
+                </div>
+                <div class="sign-form p-3">
+                    <div>
+                        <div>帳號 (Email)</div>
+                        <input type="text" name="Account" class="form-control my-2" />
+                    </div>
+                    <div>
+                        <div>密碼</div>
+                        <input type="password"
+                               name="Password"
+                               class="form-control my-2" />
+                    </div>
+                    <input type="submit"
+                           value="登入"
+                           class="btn btn-login mt-3 w-100" />
+                    <div class="d-flex justify-content-between my-3">
+                        <a href="" class="text-decoration-none">忘記密碼?</a>
+                        <a href="" class="text-decoration-none">註冊</a>
+                    </div>
+                    
+                </div>
+            }
+        </div>
+    </div>
+ </div>
+ @if (ViewBag.Error=="true")
+ {
+     <script>
+         Swal.fire({
+          icon: "error",
+          title: "帳號密碼有誤",
+        });
+     </script>
+}
+
+
+
+

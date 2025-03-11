@@ -1,0 +1,298 @@
+﻿@using System.Text.Json
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+@{
+    var userJson = HttpContextAccessor.HttpContext.Session.GetString("SK_LOGEDIN_USER");
+    var user = userJson != null ? System.Text.Json.JsonSerializer.Deserialize<Tmember>(userJson) : null;
+
+    if (user == null || user.Mpermissions < 1)  
+    {
+        Context.Response.Redirect("/FrontHome/FrontIndex"); // 跳轉到沒有權限的頁面
+    }
+}
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>Dashboard - NiceAdmin Bootstrap Template</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Favicons -->
+    <link href="~/assets/img/favicon.png" rel="icon">
+    <link href="~/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="~/assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="~/assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="~/assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <!-- 在這裡加入 Bootstrap Datepicker 的 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker3.min.css" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="~/assets/css/style.css" rel="stylesheet">  
+    @RenderSection("styles", required: false)
+    <style>
+        body {
+            padding-top: 90px; 
+        }
+    </style>
+
+    <!-- =======================================================
+    * Template Name: NiceAdmin
+    * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
+    * Updated: Apr 20 2024 with Bootstrap v5.3.3
+    * Author: BootstrapMade.com
+    * License: https://bootstrapmade.com/license/
+    ======================================================== -->
+</head>
+<body class="h-100 d-flex flex-column toggle-sidebar">
+    <!-- ======= Header ======= -->
+    <header id="header" class="header d-flex align-items-center py-4 fixed-top">
+
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="~/Home/Index" class="logo d-flex align-items-center">
+                <!--<img src="~/assets/img/logo1.png" alt="">-->
+                <span class="d-none d-lg-block ms-3" style="letter-spacing:5px">UniPay</span>
+            </a>
+            <i class="bi bi-list toggle-sidebar-btn"></i>
+        </div><!-- End Logo -->
+
+
+        <nav class="header-nav ms-auto">
+            <ul class="d-flex align-items-center">
+                <li class="nav-item dropdown pe-3">
+
+                    <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown" id="MPhoto">
+                        <span class="d-none d-md-block dropdown-toggle ps-2 " id="userName1"></span>
+                    </a><!-- End Profile Iamge Icon -->
+
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+                        <li class="dropdown-header">
+                            <h6 id="userName2"></h6>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-center" href="~/Member/Profile">
+                                <i class="bi bi-person"></i>
+                                <span class="fw-bold">個人資料</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-center" href="~/FrontHome/FrontIndex">
+                                <i class="bi bi-window"></i>
+                                <span class="fw-bold">前台網站</span>
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-center" href="~/Home/Login" id="signout">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span class="fw-bold">登出</span>
+                            </a>
+                        </li>
+
+                    </ul><!-- End Profile Dropdown Items -->
+                </li><!-- End Profile Nav -->
+
+            </ul>
+        </nav><!-- End Icons Navigation -->
+
+    </header><!-- End Header -->
+    <!-- ======= Sidebar ======= -->
+    <aside id="sidebar" class="sidebar">
+
+        <ul class="sidebar-nav" id="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="~/Home/Index">
+                    <i class="bi bi-grid"></i>
+                    <span>首頁</span>
+                </a>
+            </li><!-- 首頁 Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-people"></i><span>會員</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a href="~/Member/List">
+                            <i class="bi bi-circle"></i><span>會員資料</span>
+                        </a>
+                    </li>
+                </ul>
+            </li><!-- End 會員 Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-folder"></i><span>商品</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+
+                    <li>
+                        <a href="~/Product/List">
+                            <i class="bi bi-circle"></i><span>商品管理</span>
+                        </a>
+                    </li>
+                    @*<li>
+                        <a href="~/Style/List">
+                            <i class="bi bi-circle"></i><span>Style管理</span>
+                        </a>
+                    </li>*@
+                </ul>
+            </li><!-- End 商品 Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-journal-text"></i><span>訂單</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a href="~/order/List">
+                            <i class="bi bi-circle"></i><span>訂單管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="~/order/OrderAdvice">
+                            <i class="bi bi-circle"></i><span>訂單意見</span>
+                        </a>
+                    </li>
+                </ul>
+            </li><!-- End Tables Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-currency-dollar"></i><span>金流</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="charts-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a href="~/Payment/Payment">
+                            <i class="bi bi-circle"></i><span>我的進帳</span>
+                        </a>
+                    </li>
+                </ul>
+            </li><!-- End Charts Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#icons-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-list"></i><span>其他</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="icons-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a href="~/Other/Coupon">
+                            <i class="bi bi-circle"></i><span>折價券</span>
+                        </a>
+                    </li>
+                </ul>
+            </li><!-- End Icons Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="~/Chat/ChatRoom">
+                    <i class="bi bi-grid"></i>
+                    <span>客服</span>
+                </a>
+            </li><!-- 客服 Nav -->
+
+        </ul>
+
+    </aside><!-- End Sidebar-->
+    <!-- ======= main ======= -->
+    <div class="container flex-shrink-0 ">
+        <main role="main" class="main">
+            @RenderBody()
+        </main>
+    </div>
+    <!-- End main-->
+    <!-- ======= Footer ======= -->
+    <footer class="footer mt-auto">
+        <div class="copyright">
+            Copyright 2019. All Rights Reserved.
+        </div>
+    </footer><!-- End Footer -->
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- 1.Template Main JS File -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>   
+    <!-- 2. Bootstrap 核心檔案，需要在 jQuery 之後，因為 Bootstrap 依賴 jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 3.加入 Moment.js  用於日期時間的處理和格式化的 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+    <!-- 4.Bootstrap Datepicker 的 主程式：提供日期選擇功能 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+    <!-- 5.Bootstrap Datepicker 的 中文語言包：提供中文介面 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.zh-TW.min.js"></script>
+    <!-- Vendor JS Files -->
+    <script src="~/assets/vendor/apexcharts/apexcharts.min.js"></script>
+    <script src="~/assets/vendor/chart.js/chart.umd.js"></script>
+    <script src="~/assets/vendor/echarts/echarts.min.js"></script>
+    <script src="~/assets/vendor/quill/quill.js"></script>
+    <script src="~/assets/vendor/simple-datatables/simple-datatables.js"></script>
+    <script src="~/assets/vendor/tinymce/tinymce.min.js"></script>
+    <script src="~/assets/vendor/php-email-form/validate.js"></script>
+    <script src="~/assets/js/main.js"></script>
+    <script src="~/js/datepicker.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let json = @Html.Raw(JsonSerializer.Serialize(ViewContext.HttpContext.Session.GetString(CDictionary.SK_LOGEDIN_USER)));
+        if (json && json !== 'null') {
+            let user = JSON.parse(json);
+            let photo = user.Mphoto;
+            document.getElementById("userName1").textContent = user.Mname;
+            document.getElementById("userName2").textContent = user.Mname;
+
+            let userPhoto = document.createElement("img");
+            userPhoto.src = `/Images/${photo}`
+            userPhoto.alt = "Profile";
+            userPhoto.className = "rounded-circle";
+            document.getElementById("MPhoto").prepend(userPhoto);
+        }
+        
+        $("#signout").on("click", (e) => {
+            e.preventDefault(); // 防止點擊後跳轉
+
+            Swal.fire({
+                title: "確定要登出嗎?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "確定",
+                cancelButtonText: "取消"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "/Home/SingOut",
+                        type: "POST",        
+                        success: (response) => {
+                            if (response.success) {
+                                window.location.href = "/Home/Login";
+                            } else {
+                                Swal.fire("登出失敗", "登出過程中發生錯誤，請稍後再試", "error");
+                            }
+                        },
+                        error: () => {
+                            Swal.fire("發生錯誤", "無法完成登出，請稍後再試", "error");
+                        }
+                    });
+                }
+            });
+        });
+
+
+    </script>    
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>
