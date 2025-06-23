@@ -9,20 +9,19 @@ namespace Project.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly DbuniPayContext _context;
+        private readonly DbuniPayContext _db;
 
         IWebHostEnvironment _enviro = null;
-        public ProductController(IWebHostEnvironment p, DbuniPayContext context)
+        public ProductController(IWebHostEnvironment p, DbuniPayContext db)
         {
             _enviro = p;
-            _context = context;
+            _db = db;
         }
 
         //前台ProductList
         public IActionResult ProductList(string keyword, int id, string sortby = "default")
         {
-            DbuniPayContext db = new DbuniPayContext();
-            var datas = db.Tproducts
+            var datas = _db.Tproducts
                               .Where(t => !t.PisHided) // 過濾已下架產品
                               .AsQueryable();
             // 關鍵字篩選
@@ -34,7 +33,7 @@ namespace Project.Controllers
             }
 
             // 取得銷售數量 (熱銷產品) - 關聯 Torderdetail 表
-            var salesData = db.TorderDetails
+            var salesData = _db.TorderDetails
                               .GroupBy(o => o.Pid)
                               .Select(g => new { Pid = g.Key, TotalSales = g.Sum(o => o.Pcount) })
                               .ToDictionary(x => x.Pid, x => x.TotalSales);
@@ -74,20 +73,18 @@ namespace Project.Controllers
         {
             if (id == null)
                 return RedirectToAction("ProductList");
-
-            DbuniPayContext db = new DbuniPayContext();
-            Tproduct x = db.Tproducts.FirstOrDefault(c => c.Pid == id);
+            Tproduct x = _db.Tproducts.FirstOrDefault(c => c.Pid == id);
             if (x == null)
                 return RedirectToAction("ProductList");
 
             // 查詢對應的圖片列表
-            List<string> images = db.Tpimages
+            List<string> images = _db.Tpimages
                                      .Where(img => img.Pid == id)
                                      .Select(img => img.Piname)
                                      .ToList();
 
             // 查詢對應的顏色與尺寸（不顯示 Pstock = 0 的）
-            var inventory = db.TproductInventories
+            var inventory = _db.TproductInventories
                               .Where(inv => inv.Pid == id)
                               .ToList();
 
@@ -98,7 +95,7 @@ namespace Project.Controllers
             Dictionary<string, int> stockMap = inventory.ToDictionary(inv => $"{inv.Pcolor}-{inv.Psize}", inv => inv.Pstock);
 
             // 查詢該產品的評價列表
-            List<Tcomment> comments = db.Tcomments
+            List<Tcomment> comments = _db.Tcomments
                                         .Where(c => c.Pid == id)
                                         .OrderByDescending(c => c.ComCreateDate) // 依創建時間排序
                                         .ToList();
@@ -122,10 +119,9 @@ namespace Project.Controllers
         //後台List
         public IActionResult List(string keyword, int id)
         {
-            DbuniPayContext db = new DbuniPayContext();
 
             // 取得符合條件的產品 (排除下架的)
-            var datas = db.Tproducts
+            var datas = _db.Tproducts
                           .Where(t => !t.PisHided);
 
             if (!string.IsNullOrEmpty(keyword))
@@ -140,7 +136,7 @@ namespace Project.Controllers
                 .Select(t => new CProductWrap
                 {
                     product = t,
-                    TproductInventories = db.TproductInventories
+                    TproductInventories = _db.TproductInventories
                                    .Where(i => i.Pid == t.Pid)
                                    .ToList()
                 })
@@ -154,12 +150,11 @@ namespace Project.Controllers
         {
             if (id != null)
             {
-                DbuniPayContext db = new DbuniPayContext();
-                Tproduct x = db.Tproducts.FirstOrDefault(c => c.Pid == id);
+                Tproduct x = _db.Tproducts.FirstOrDefault(c => c.Pid == id);
                 if (x != null)
                 {
                     x.PisHided = true;
-                    db.SaveChanges();
+					_db.SaveChanges();
                 }
             }
             return RedirectToAction("List");
@@ -168,8 +163,7 @@ namespace Project.Controllers
         // 後台重新上架頁面
         public IActionResult Renew(string keyword)
         {
-            DbuniPayContext db = new DbuniPayContext();
-            var datas = db.Tproducts
+            var datas = _db.Tproducts
                           .Where(t => t.PisHided);
 
             if (!string.IsNullOrEmpty(keyword))
@@ -189,12 +183,11 @@ namespace Project.Controllers
         {
             if (id != null)
             {
-                DbuniPayContext db = new DbuniPayContext();
-                Tproduct x = db.Tproducts.FirstOrDefault(c => c.Pid == id);
+                Tproduct x = _db.Tproducts.FirstOrDefault(c => c.Pid == id);
                 if (x != null)
                 {
                     x.PisHided = false;
-                    db.SaveChanges();
+					_db.SaveChanges();
                 }
             }
             return RedirectToAction("List");
@@ -203,14 +196,13 @@ namespace Project.Controllers
         // 後台刪除商品
         public IActionResult Delete(int? id)
         {
-            DbuniPayContext db = new DbuniPayContext();
             if (id != null)
             {
-                Tproduct x = db.Tproducts.FirstOrDefault(c => c.Pid == id);
+                Tproduct x = _db.Tproducts.FirstOrDefault(c => c.Pid == id);
                 if (x != null)
                 {
                     // 刪除對應的 Tpimages 及其圖片檔案
-                    var images = db.Tpimages.Where(img => img.Pid == id).ToList();
+                    var images = _db.Tpimages.Where(img => img.Pid == id).ToList();
                     foreach (var img in images)
                     {
                         string imagePath = Path.Combine(_enviro.WebRootPath, "images", img.Piname);
@@ -219,10 +211,10 @@ namespace Project.Controllers
                             System.IO.File.Delete(imagePath);
                         }
                     }
-                    db.Tpimages.RemoveRange(images);
+					_db.Tpimages.RemoveRange(images);
 
-                    // 刪除對應的 TproductInventories
-                    db.TproductInventories.RemoveRange(db.TproductInventories.Where(i => i.Pid == id));
+					// 刪除對應的 TproductInventories
+					_db.TproductInventories.RemoveRange(_db.TproductInventories.Where(i => i.Pid == id));
 
                     // 刪除主圖片
                     if (!string.IsNullOrEmpty(x.Pphoto))
@@ -234,10 +226,10 @@ namespace Project.Controllers
                         }
                     }
 
-                    // 刪除 Tproduct
-                    db.Tproducts.Remove(x);
+					// 刪除 Tproduct
+					_db.Tproducts.Remove(x);
 
-                    db.SaveChanges();
+					_db.SaveChanges();
                 }
             }
 
@@ -246,12 +238,11 @@ namespace Project.Controllers
         //後台新增商品
         public IActionResult Create()
         {
-            DbuniPayContext db = new DbuniPayContext();
             CProductWrap model = new CProductWrap
             {
-                PtypeList = db.Tproducts.Select(p => p.Ptype).Distinct().ToList(),
-                PcategoryList = db.Tproducts.Select(p => p.Pcategory).Distinct().ToList(),
-                Sizes = db.TproductInventories.Select(i => i.Psize).Distinct().ToList()
+                PtypeList = _db.Tproducts.Select(p => p.Ptype).Distinct().ToList(),
+                PcategoryList = _db.Tproducts.Select(p => p.Pcategory).Distinct().ToList(),
+                Sizes = _db.TproductInventories.Select(i => i.Psize).Distinct().ToList()
             };
 
             return View(model);
@@ -260,8 +251,7 @@ namespace Project.Controllers
         [HttpPost]
         public IActionResult Create(CProductWrap p, List<IFormFile> photos)
         {
-            DbuniPayContext db = new DbuniPayContext();
-            var transaction = db.Database.BeginTransaction();
+            var transaction = _db.Database.BeginTransaction();
             try
             {
                 if (p.photoPath == null)
@@ -283,9 +273,9 @@ namespace Project.Controllers
                 // 設置創建時間
                 p.PcreatedDate = DateTime.Now;
 
-                // 先新增產品，讓資料庫生成 Pid
-                db.Tproducts.Add(p.product);
-                db.SaveChanges();  // 確保 Pid 生成
+				// 先新增產品，讓資料庫生成 Pid
+				_db.Tproducts.Add(p.product);
+				_db.SaveChanges();  // 確保 Pid 生成
 
                 // 獲取剛剛插入的產品 ID
                 int productId = p.product.Pid;
@@ -302,13 +292,13 @@ namespace Project.Controllers
                         Pstock = stock.Pstock,
                         PlastUpdated = DateTime.Now
                     };
-                    db.TproductInventories.Add(inventory);
+					_db.TproductInventories.Add(inventory);
                     totalStock += stock.Pstock;
                 }
 
                 // 更新 Pinventory
                 p.product.Pinventory = totalStock;
-                db.Tproducts.Update(p.product);
+				_db.Tproducts.Update(p.product);
 
                 // 處理多張圖片上傳 (存入 Tpimages)
                 if (photos != null && photos.Count > 0)
@@ -331,12 +321,12 @@ namespace Project.Controllers
                                 Pid = productId,   // 關聯產品 ID
                                 Piname = imageName // 存圖片名稱
                             };
-                            db.Tpimages.Add(img);
+							_db.Tpimages.Add(img);
                         }
                     }
                 }
 
-                db.SaveChanges(); // 儲存所有數據
+				_db.SaveChanges(); // 儲存所有數據
                 transaction.Commit(); // 交易提交
                                       // 回傳 JSON 給前端
                 return Json(new { success = true });
@@ -354,19 +344,18 @@ namespace Project.Controllers
             if (id == null)
                 return RedirectToAction("List");
 
-            DbuniPayContext db = new DbuniPayContext();
-            Tproduct x = db.Tproducts.FirstOrDefault(c => c.Pid == id);
+            Tproduct x = _db.Tproducts.FirstOrDefault(c => c.Pid == id);
             if (x == null)
                 return RedirectToAction("List");
 
             var productWrap = new CProductWrap()
             {
                 product = x,
-                PtypeList = db.Tproducts.Select(p => p.Ptype).Distinct().ToList(),
-                PcategoryList = db.Tproducts.Select(p => p.Pcategory).Distinct().ToList(),
-                Sizes = db.TproductInventories.Select(i => i.Psize).Distinct().ToList(),
-                TproductInventories = db.TproductInventories.Where(i => i.Pid == x.Pid).ToList(), // 加入庫存清單
-                Images = db.Tpimages.Where(img => img.Pid == x.Pid).Select(img => img.Piname).ToList() // 加入圖片清單
+                PtypeList = _db.Tproducts.Select(p => p.Ptype).Distinct().ToList(),
+                PcategoryList = _db.Tproducts.Select(p => p.Pcategory).Distinct().ToList(),
+                Sizes = _db.TproductInventories.Select(i => i.Psize).Distinct().ToList(),
+                TproductInventories = _db.TproductInventories.Where(i => i.Pid == x.Pid).ToList(), // 加入庫存清單
+                Images = _db.Tpimages.Where(img => img.Pid == x.Pid).Select(img => img.Piname).ToList() // 加入圖片清單
             };
             return View(productWrap);
         }
@@ -375,8 +364,8 @@ namespace Project.Controllers
         public IActionResult Edit(CProductWrap p, List<IFormFile> photos)
         {
             try
-            {   DbuniPayContext db = new DbuniPayContext();
-                Tproduct x = db.Tproducts.FirstOrDefault(c => c.Pid == p.Pid);
+            {   
+                Tproduct x = _db.Tproducts.FirstOrDefault(c => c.Pid == p.Pid);
                 if (x == null)
                 {
                     return Json(new { success = false, message = "找不到該商品" });
@@ -415,7 +404,7 @@ namespace Project.Controllers
                 // **處理附加圖片**
                 if (photos != null && photos.Count > 0)
                 {
-                    var oldImages = db.Tpimages.Where(img => img.Pid == p.Pid).ToList();
+                    var oldImages = _db.Tpimages.Where(img => img.Pid == p.Pid).ToList();
                     foreach (var oldImg in oldImages)
                     {
                         string oldImagePath = Path.Combine(_enviro.WebRootPath, "images", oldImg.Piname);
@@ -424,7 +413,7 @@ namespace Project.Controllers
                             System.IO.File.Delete(oldImagePath);
                         }
                     }
-                    db.Tpimages.RemoveRange(oldImages);
+					_db.Tpimages.RemoveRange(oldImages);
 
                     // **儲存新圖片**
                     foreach (var photo in photos)
@@ -438,28 +427,28 @@ namespace Project.Controllers
                             {
                                 photo.CopyTo(stream);
                             }
-                            db.Tpimages.Add(new Tpimage { Pid = p.Pid, Piname = imageName });
+							_db.Tpimages.Add(new Tpimage { Pid = p.Pid, Piname = imageName });
                         }
                     }
                 }
 
-                // **更新商品規格**
-                db.TproductInventories.RemoveRange(db.TproductInventories.Where(i => i.Pid == p.Pid));
+				// **更新商品規格**
+				_db.TproductInventories.RemoveRange(_db.TproductInventories.Where(i => i.Pid == p.Pid));
                 if (p.TproductInventories != null && p.TproductInventories.Count > 0)
                 {
                     foreach (var inv in p.TproductInventories)
                     {
                         inv.Pid = p.Pid;
                         inv.PlastUpdated = DateTime.Now;
-                        db.TproductInventories.Add(inv);
+						_db.TproductInventories.Add(inv);
                     }
                 }
 
-                db.SaveChanges();
+				_db.SaveChanges();
 
                 // **計算並更新總庫存**
-                x.Pinventory = db.TproductInventories.Where(i => i.Pid == x.Pid).Sum(i => i.Pstock);
-                db.SaveChanges();
+                x.Pinventory = _db.TproductInventories.Where(i => i.Pid == x.Pid).Sum(i => i.Pstock);
+				_db.SaveChanges();
 
 
                 return Json(new { success = true, message = "商品修改成功!" });

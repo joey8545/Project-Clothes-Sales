@@ -6,6 +6,11 @@ namespace Project.Controllers
 {
 	public class PaymentController : Controller
 	{
+		private readonly DbuniPayContext _db;
+		public PaymentController(DbuniPayContext db) 
+		{
+			_db = db;
+		}
 		public IActionResult Payment()
 		{
 			return View();
@@ -13,7 +18,6 @@ namespace Project.Controllers
 
 		public async Task<IActionResult> GetWeek()
 		{
-			DbuniPayContext db = new DbuniPayContext();
 			var today = DateTime.Today;
 			int diff = today.DayOfWeek - DayOfWeek.Monday;
 			if (diff < 0)
@@ -27,7 +31,7 @@ namespace Project.Controllers
 			for (DateTime date = monday; date <= sunday; date = date.AddDays(1))
 			{
 				WeekDataDate.Add(date.ToString("MM/dd"));
-				var price = await db.Torders.Where(c => c.Opayment == true && c.Odate.Date == date).SumAsync(c => c.OtotalPrice);
+				var price = await _db.Torders.Where(c => c.Opayment == true && c.Odate.Date == date).SumAsync(c => c.OtotalPrice);
 				WeekDataPrice.Add(price);
 			}
 			return Json(new { price = WeekDataPrice, date = WeekDataDate });
@@ -35,7 +39,6 @@ namespace Project.Controllers
 
 		public async Task<IActionResult> GetMonth()
 		{
-			DbuniPayContext db = new DbuniPayContext();
 			var today = DateTime.Today;
 			var currentMonth = DateTime.Today.Month;
 			var currentYear = DateTime.Today.Year;
@@ -46,7 +49,7 @@ namespace Project.Controllers
 			for (DateTime date = firstDayOfMonth; date <= lastDayOfMonth; date = date.AddDays(1))
 			{
 				WeekDataDate.Add(date.ToString("MM/dd"));
-				var price = await db.Torders.Where(c => c.Opayment == true && c.Odate.Date == date).SumAsync(c => c.OtotalPrice);
+				var price = await _db.Torders.Where(c => c.Opayment == true && c.Odate.Date == date).SumAsync(c => c.OtotalPrice);
 				WeekDataPrice.Add(price);
 			}
 			return Json(new { price = WeekDataPrice, date = WeekDataDate });
@@ -54,7 +57,6 @@ namespace Project.Controllers
 
 		public async Task<IActionResult> GetYear()
 		{
-			DbuniPayContext db = new DbuniPayContext();
 			var currentYear = DateTime.Today.Year;
 
 
@@ -62,7 +64,7 @@ namespace Project.Controllers
 			var WeekDataPrice = new List<int>();
 			for (int month = 1; month <= 12; month++)
 			{
-				var price = await db.Torders.Where(c => c.Opayment == true && c.Odate.Month == month && c.Odate.Year == currentYear).SumAsync(c => c.OtotalPrice);
+				var price = await _db.Torders.Where(c => c.Opayment == true && c.Odate.Month == month && c.Odate.Year == currentYear).SumAsync(c => c.OtotalPrice);
 				WeekDataPrice.Add(price);
 			}
 			return Json(new { price = WeekDataPrice });
@@ -70,7 +72,6 @@ namespace Project.Controllers
 
 		public async Task<IActionResult> DateSearch([FromQuery] string start, [FromQuery] string end)
 		{
-			DbuniPayContext db = new DbuniPayContext();
 			var dateStart = Convert.ToDateTime(start);
 			var dateEnd = Convert.ToDateTime(end);
 			var WeekDataDate = new List<string>();
@@ -78,7 +79,7 @@ namespace Project.Controllers
 			for (var date = dateStart; date <= dateEnd; date = date.AddDays(1))
 			{
 				WeekDataDate.Add(date.ToString("MM-dd"));
-				var price = await db.Torders
+				var price = await _db.Torders
 									.Where(c => c.Opayment == true && c.Odate.Date == date.Date) 
 									.Select(c => (int?)c.OtotalPrice) 
 									.SumAsync() ?? 0;

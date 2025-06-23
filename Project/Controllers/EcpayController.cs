@@ -14,7 +14,7 @@ namespace Project.Controllers
         private readonly DbuniPayContext _db;
         private readonly IMemoryCache _cache;
 
-        // ✅ 合併建構函式，正確注入 DbuniPayContext 和 IMemoryCache
+        
         public EcpayController(DbuniPayContext db, IMemoryCache cache)
         {
             _db = db;

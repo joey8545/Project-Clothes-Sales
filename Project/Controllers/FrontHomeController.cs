@@ -201,14 +201,14 @@ namespace Project.Controllers
             {
                 data.Add(key, id[key]);
             }
-            DbuniPayContext db = new DbuniPayContext();
+            
             string temp = id["MerchantTradeNo"]; //寫在LINQ(下一行)會出錯，
-            var ecpayOrder = db.Torders.Where(m => m.OtradeNo == temp).FirstOrDefault();
+            var ecpayOrder = _context.Torders.Where(m => m.OtradeNo == temp).FirstOrDefault();
             if (ecpayOrder != null)
             {
                 ecpayOrder.Opayment = int.Parse(id["RtnCode"]) == 0 ?  false:true;
-                //ecpayOrder.OpaymentDate = Convert.ToDateTime(id["PaymentDate"]);  //因為出現錯誤所以我先註解掉,麻煩還原此行註解
-                db.SaveChanges();
+				//ecpayOrder.OpaymentDate = Convert.ToDateTime(id["PaymentDate"]);  //因為出現錯誤所以我先註解掉,麻煩還原此行註解
+				_context.SaveChanges();
             }
             return View("EcpayView", data);
         }
@@ -221,16 +221,16 @@ namespace Project.Controllers
             {
                 data.Add(key, id[key]);
             }
-            DbuniPayContext db = new DbuniPayContext();
+            
             string temp = id["MerchantTradeNo"]; //寫在LINQ會出錯
-            var ecpayOrder = db.EcpayOrders.Where(m => m.MerchantTradeNo == temp).FirstOrDefault();
+            var ecpayOrder = _context.EcpayOrders.Where(m => m.MerchantTradeNo == temp).FirstOrDefault();
             if (ecpayOrder != null)
             {
                 ecpayOrder.RtnCode = int.Parse(id["RtnCode"]);
                 if (id["RtnMsg"] == "Succeeded") ecpayOrder.RtnMsg = "已付款";
                 ecpayOrder.PaymentDate = Convert.ToDateTime(id["PaymentDate"]);
                 ecpayOrder.SimulatePaid = int.Parse(id["SimulatePaid"]);
-                db.SaveChanges();
+				_context.SaveChanges();
             }
             return View("EcpayView", data);
         }

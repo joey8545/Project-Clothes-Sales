@@ -10,7 +10,12 @@ namespace Project.Controllers
 {
     public class OrderController : Controller
     {
+        private readonly DbuniPayContext _db;
 
+        public OrderController(DbuniPayContext db) 
+        {
+            _db = db;
+        }
         public IActionResult Index()
         {
             return View();
@@ -18,11 +23,10 @@ namespace Project.Controllers
 
         public IActionResult List(CKeywordViewModel vm, string status, int page = 1)
         {
-            var db = new DbuniPayContext();
             string keyword = vm.txtKeyword;
             status = string.IsNullOrEmpty(status) ? "All" : status;
 
-            IQueryable<Torder> orders = db.Torders.AsQueryable();
+            IQueryable<Torder> orders = _db.Torders.AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -88,8 +92,7 @@ namespace Project.Controllers
             if (id == null)
                 return RedirectToAction("List");
 
-            DbuniPayContext db = new DbuniPayContext();
-            Torder x = db.Torders.FirstOrDefault(c => c.Oid == id);
+            Torder x = _db.Torders.FirstOrDefault(c => c.Oid == id);
             if (x == null)
                 return RedirectToAction("List");
 
@@ -97,8 +100,8 @@ namespace Project.Controllers
         }
         [HttpPost]
         public IActionResult Edit(OrderWrap p) {
-			DbuniPayContext db = new DbuniPayContext();
-			Torder x = db.Torders.FirstOrDefault(c => c.Oid == p.Oid);
+
+			Torder x = _db.Torders.FirstOrDefault(c => c.Oid == p.Oid);
 			if (x != null)
 			{
 				x.Oname = p.Oname;
@@ -116,14 +119,13 @@ namespace Project.Controllers
                 x.OreturnDate = p.OreturnDate;
                 x.OreturnStatus = p.OreturnStatus;
                 x.OreturnNo = p.OreturnNo;
-                db.SaveChanges();
+				_db.SaveChanges();
 			}
 			return RedirectToAction("List");
 		}
         public IActionResult OrderDetail(int id)
         {
-			DbuniPayContext db = new DbuniPayContext();
-			var OrderDetails = db.TorderDetails 
+			var OrderDetails = _db.TorderDetails 
                                .Where (t=>t.Oid == id )
                                .ToList();
             List<COrderDetailWarp> list = new List<COrderDetailWarp>();
@@ -140,8 +142,7 @@ namespace Project.Controllers
         [HttpGet]
         public async Task<IActionResult>  getAdvice()
         {
-            DbuniPayContext db = new DbuniPayContext();
-            var advice = await db.Tadvices.OrderByDescending(c=>c.DateTime).ToListAsync();
+            var advice = await _db.Tadvices.OrderByDescending(c=>c.DateTime).ToListAsync();
             if (advice==null) {
                 advice = new List<Tadvice>();
             }

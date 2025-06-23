@@ -12,20 +12,20 @@ namespace Project.Controllers
 {
     public class StyleController : Controller
     {
-        private readonly DbuniPayContext _context;
+        private readonly DbuniPayContext _db;
         IWebHostEnvironment _enviro = null;
-        public StyleController(IWebHostEnvironment p,DbuniPayContext context)
+        public StyleController(IWebHostEnvironment p,DbuniPayContext db)
         {
-            _context = context;
+            _db = db;
             _enviro = p;
         }
 
         //前台StyleList
         public async Task<IActionResult> StyleList(string category)
         {
-            var query = from tsi in _context.TstyleImgs
-                        join ts in _context.Tstyles on tsi.Sid equals ts.Sid
-                        join tp in _context.Tproducts on ts.Pid equals tp.Pid
+            var query = from tsi in _db.TstyleImgs
+                        join ts in _db.Tstyles on tsi.Sid equals ts.Sid
+                        join tp in _db.Tproducts on ts.Pid equals tp.Pid
                         select new { tsi.Simg, tsi.SimgCategory, tp.Pid, tp.Pname, tp.Pphoto, tp.Pprice };
 
             // 如果有篩選條件，則進行篩選
@@ -56,10 +56,9 @@ namespace Project.Controllers
         //後台StyleList
         public async Task<IActionResult> List()
         {
-            DbuniPayContext db = new DbuniPayContext();
-            var styles = (from tsi in _context.TstyleImgs
-                          join ts in _context.Tstyles on tsi.Sid equals ts.Sid
-                          join tp in _context.Tproducts on ts.Pid equals tp.Pid
+            var styles = (from tsi in _db.TstyleImgs
+                          join ts in _db.Tstyles on tsi.Sid equals ts.Sid
+                          join tp in _db.Tproducts on ts.Pid equals tp.Pid
                           select new { tsi.Sid, tsi.Simg, tsi.SimgCategory, tp.Pid, tp.Pname, tp.Pphoto, tp.Pprice })
                       .ToList()
                       .GroupBy(x => x.Sid)

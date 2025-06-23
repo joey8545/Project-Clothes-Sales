@@ -11,22 +11,24 @@ namespace Project.Controllers
 {
     public class MemberController : Controller
     {
+        private readonly DbuniPayContext _db;
+
         IWebHostEnvironment _enviro = null;
-        public MemberController(IWebHostEnvironment p)
+        public MemberController(IWebHostEnvironment p,DbuniPayContext db)
         {
             _enviro = p;
+            _db = db;
         }
 
         public IActionResult List(CKeywordViewModel vm)
         {
-            DbuniPayContext db = new DbuniPayContext();
             string keyword = vm.txtKeyword;
             IEnumerable<Tmember> datas = null;
 
             if (string.IsNullOrEmpty(keyword))
-                datas = db.Tmembers.Where(m => m.MisHided == false); // 只顯示未加入黑名單的會員
+                datas = _db.Tmembers.Where(m => m.MisHided == false); // 只顯示未加入黑名單的會員
             else
-                datas = db.Tmembers.Where
+                datas = _db.Tmembers.Where
                     (p => p.MisHided == false &&
                     (p.Mname.Contains(keyword)
                 || (keyword == "男" && p.Mgender == 0)
@@ -44,26 +46,22 @@ namespace Project.Controllers
         }
         public IActionResult BlacklistIndex()
         {
-            using (DbuniPayContext db = new DbuniPayContext())
-            {
                 // 獲取已加入黑名單的會員
-                var blacklistedMembers = db.Tmembers.Where(m => m.MisHided == true).ToList();
+                var blacklistedMembers = _db.Tmembers.Where(m => m.MisHided == true).ToList();
                 List<CMemberWrap> list = blacklistedMembers.Select(t => new CMemberWrap { member = t }).ToList();
                 return View("Blacklist", list); // 返回 Blacklist 視圖
-            }
         }
         [HttpGet] // 加入黑名單的處理方法
         public IActionResult Blacklist(int id)
         {
-            DbuniPayContext db = new DbuniPayContext();
-            var member = db.Tmembers.FirstOrDefault(m => m.Mid == id);
+            var member = _db.Tmembers.FirstOrDefault(m => m.Mid == id);
 
             if (member != null)
             {
                 member.MisHided = true; // 設定MIsHided為true，將會員加入黑名單
                 try
                 {
-                    db.SaveChanges(); // 保存變更
+					_db.SaveChanges(); // 保存變更
                 }
                 catch (Exception ex)
                 {
@@ -76,15 +74,14 @@ namespace Project.Controllers
         
         public IActionResult RemoveFromBlacklist(int id)
         {
-            DbuniPayContext db = new DbuniPayContext();
-            var member = db.Tmembers.FirstOrDefault(m => m.Mid == id);
+            var member = _db.Tmembers.FirstOrDefault(m => m.Mid == id);
 
             if (member != null)
             {
                 member.MisHided = false; // 移除黑名單
                 try
                 {
-                    db.SaveChanges(); // 保存變更
+					_db.SaveChanges(); // 保存變更
                 }
                 catch (Exception ex)
                 {
@@ -98,8 +95,7 @@ namespace Project.Controllers
 
         public IActionResult Edit(int id)
         {
-            DbuniPayContext db = new DbuniPayContext();
-            var member = db.Tmembers.FirstOrDefault(m => m.Mid == id);
+            var member = _db.Tmembers.FirstOrDefault(m => m.Mid == id);
             if (member == null)
                 return RedirectToAction("List");
             return View(member);
@@ -109,8 +105,7 @@ namespace Project.Controllers
         [HttpPost]
         public IActionResult Edit(Tmember p, IFormFile photo)
         {
-            DbuniPayContext db = new DbuniPayContext();
-            Tmember x = db.Tmembers.FirstOrDefault(c => c.Mid == p.Mid);
+            Tmember x = _db.Tmembers.FirstOrDefault(c => c.Mid == p.Mid);
             if (x != null)
             {
                 x.Mname = p.Mname;
@@ -176,7 +171,7 @@ namespace Project.Controllers
 
                 try
                 {
-                    db.SaveChanges();
+					_db.SaveChanges();
                     return RedirectToAction("List");
                 }
                 catch (Exception ex)
@@ -196,7 +191,6 @@ namespace Project.Controllers
         public IActionResult Create(CMemberWrap memberWrap, IFormFile photo)
         {
 
-            DbuniPayContext db = new DbuniPayContext();
             if (photo != null && photo.Length > 0)
             {
                 // 檢查檔案類型
@@ -238,11 +232,11 @@ namespace Project.Controllers
             }
 
             memberWrap.member.McreatedDate = DateTime.Now;
-            db.Tmembers.Add(memberWrap.member);
+			_db.Tmembers.Add(memberWrap.member);
 
             try
             {
-                db.SaveChanges();
+				_db.SaveChanges();
                 return RedirectToAction("List");
             }
             catch (Exception ex)
@@ -256,13 +250,12 @@ namespace Project.Controllers
 
         public IActionResult Profile()
         {
-            DbuniPayContext db = new DbuniPayContext();
             string json = HttpContext.Session.GetString(CDictionary.SK_LOGEDIN_USER);
             if (json==null) {
                 return RedirectToAction("Login", "Home");
             }
             var member = JsonSerializer.Deserialize<Tmember>(json);
-            Tmember T = db.Tmembers.FirstOrDefault(c => c.Mid == member.Mid);
+            Tmember T = _db.Tmembers.FirstOrDefault(c => c.Mid == member.Mid);
             CMemberWrap C = new CMemberWrap() { member = T };
             return View(C);
         }
@@ -270,8 +263,7 @@ namespace Project.Controllers
         [HttpPost]
         public IActionResult Profile(MemberProfilecs t)
         {
-            DbuniPayContext db = new DbuniPayContext();
-            Tmember T = db.Tmembers.FirstOrDefault(c => c.Mid == t.Mid);
+            Tmember T = _db.Tmembers.FirstOrDefault(c => c.Mid == t.Mid);
             var Mgender= t.Mgender == "男性" ? 0 : 1;
             if (T!=null) 
             {
@@ -287,7 +279,7 @@ namespace Project.Controllers
                     T.Mphoto = photoName;
                     t.photoPath.CopyTo(new FileStream(_enviro.WebRootPath + "/Images/" + photoName, FileMode.Create));
                 }
-                db.SaveChanges();
+				_db.SaveChanges();
             }
 
             string json = JsonSerializer.Serialize(T); // 序列化模型数据
@@ -298,14 +290,13 @@ namespace Project.Controllers
         [HttpPost]
         public IActionResult ChangePassword(ChangePassword C)
         {
-            DbuniPayContext db = new DbuniPayContext();
             var json = HttpContext.Session.GetString(CDictionary.SK_LOGEDIN_USER);
             Tmember member = JsonSerializer.Deserialize<Tmember>(json);
-            Tmember T = db.Tmembers.FirstOrDefault(c => c.Mid == member.Mid);
+            Tmember T = _db.Tmembers.FirstOrDefault(c => c.Mid == member.Mid);
             if (T!=null) {
                
                     T.Mpassword = C.Mpassword;
-                    db.SaveChanges();
+				    _db.SaveChanges();
             }
             string json2 = JsonSerializer.Serialize(T); // 序列化模型数据
             HttpContext.Session.SetString(CDictionary.SK_LOGEDIN_USER, json2); // 更新 Session

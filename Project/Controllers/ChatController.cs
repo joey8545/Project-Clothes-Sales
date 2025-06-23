@@ -7,20 +7,17 @@ namespace Project.Controllers
 {
     public class ChatController : Controller
     {
-        private readonly DbuniPayContext _dbuniPayContext;
+        private readonly DbuniPayContext _db;
+
+        public ChatController(DbuniPayContext db) 
+        { 
+            _db= db;
+        }
         public IActionResult ChatRoom()
         {
             return View();
         }
 
-		//public IActionResult test()
-		//{
-		//	DbuniPayContext db = new DbuniPayContext();
-            
-  //          return View();
-  //      }
-
-        // 取得會員資訊
         [HttpGet]
         public IActionResult GetMemberInfo()
         {
@@ -28,7 +25,7 @@ namespace Project.Controllers
             {
                 return Json(new { success = false, message = "用戶未登入。" });
             }
-            var member = _dbuniPayContext.Tmembers.FirstOrDefault(p => p.Mid == memberId);
+            var member = _db.Tmembers.FirstOrDefault(p => p.Mid == memberId);
             if (member == null)
             {
                 return Json(new { success = false, message = "會員資料不存在。" });
@@ -114,8 +111,8 @@ namespace Project.Controllers
                     MessageTime = DateTime.UtcNow
                 };
 
-                _dbuniPayContext.Tmessages.Add(message);
-                await _dbuniPayContext.SaveChangesAsync();
+				_db.Tmessages.Add(message);
+                await _db.SaveChangesAsync();
 
                 return Json(new
                 {
