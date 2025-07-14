@@ -11,23 +11,18 @@ namespace Project.Controllers
     public class AccountController : Controller
     {
         private readonly DbuniPayContext _context;
-        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(DbuniPayContext context, ILogger<AccountController> logger)
+        public AccountController(DbuniPayContext context)
         {
             _context = context;
-            _logger = logger;
         }
 
-        // AJAX登入功能 - 接收JSON格式的帳號密碼
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult Login([FromBody] FloginViewModel m)
         {
             // 驗證模型
             if (m == null || string.IsNullOrEmpty(m.faccount) || string.IsNullOrEmpty(m.fpassword))
             {
-                _logger.LogWarning("登入失敗: 帳號或密碼為空");
                 return Json(new { success = false, message = "帳號和密碼不能為空" });
             }
 
@@ -40,14 +35,7 @@ namespace Project.Controllers
 
                 if (member != null)
                 {
-                    _logger.LogInformation($"登入成功: {m.faccount}");
-
-                    // 登入成功，將會員資料存入Session
-                    var options = new JsonSerializerOptions
-                    {
-                        ReferenceHandler = ReferenceHandler.Preserve,
-                    };
-                    string json = JsonSerializer.Serialize(member, options);
+                    string json = JsonSerializer.Serialize(member);
                     HttpContext.Session.SetString(CDictionary.SK_LOGEDIN_USER, json);
 
                     return Json(new
@@ -58,7 +46,6 @@ namespace Project.Controllers
                 }
                 else
                 {
-                    _logger.LogWarning($"登入失敗: 用戶 {m.faccount} 帳號或密碼錯誤");
                     return Json(new
                     {
                         success = false,
@@ -68,7 +55,6 @@ namespace Project.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"登入處理錯誤: {m.faccount}");
                 return Json(new
                 {
                     success = false,
@@ -105,7 +91,6 @@ namespace Project.Controllers
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "反序列化會員資料時發生錯誤");
                         HttpContext.Session.Remove(CDictionary.SK_LOGEDIN_USER);
                     }
                 }
@@ -120,7 +105,6 @@ namespace Project.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "檢查登入狀態時發生錯誤");
                 return Json(new
                 {
                     success = false,
@@ -144,8 +128,6 @@ namespace Project.Controllers
             }
             catch (Exception ex)
             {
-                // 記錄錯誤並返回錯誤訊息
-                _logger.LogError(ex, "登出過程發生錯誤");
                 return Json(new
                 {
                     success = false,

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Project.Models;
-using Project.ViewModels;
+using Project.ViewModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
