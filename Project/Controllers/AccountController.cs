@@ -3,7 +3,7 @@ using Project.Models;
 using Project.ViewModel;
 using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Serialization; // 引入 ReferenceHandler 命名空間
+using System.Text.Json.Serialization; 
 using System.Linq;
 
 namespace Project.Controllers
@@ -20,7 +20,7 @@ namespace Project.Controllers
         [HttpPost]
         public IActionResult Login([FromBody] FloginViewModel m)
         {
-            // 驗證模型
+            
             if (m == null || string.IsNullOrEmpty(m.faccount) || string.IsNullOrEmpty(m.fpassword))
             {
                 return Json(new { success = false, message = "帳號和密碼不能為空" });
@@ -28,7 +28,7 @@ namespace Project.Controllers
 
             try
             {
-                // 查詢資料庫
+                
                 Tmember? member = _context.Tmembers.FirstOrDefault(
                     c => c.Maccount == m.faccount && c.Mpassword == m.fpassword
                 );
@@ -63,20 +63,18 @@ namespace Project.Controllers
             }
         }
 
-        // 檢查登入狀態的API
+        
         [HttpGet]
         public IActionResult CheckLoginStatus()
         {
             try
             {
                 var memberJson = HttpContext.Session.GetString(CDictionary.SK_LOGEDIN_USER);
-
-                // 檢查是否已登入
                 if (!string.IsNullOrEmpty(memberJson))
                 {
                     try
                     {
-                        // 嘗試反序列化會員資料
+                        
                         var member = JsonSerializer.Deserialize<Tmember>(memberJson);
                         if (member != null)
                         {
@@ -118,12 +116,11 @@ namespace Project.Controllers
         {
             try
             {
-                // 清除Session中的用戶資料
                 HttpContext.Session.Remove(CDictionary.SK_LOGEDIN_USER);
                 return Json(new
                 {
                     success = true,
-                    redirectUrl = "FrontIndex/FrontHome" // 添加重定向URL
+                    redirectUrl = "FrontIndex/FrontHome" 
                 });
             }
             catch (Exception ex)

@@ -14,9 +14,9 @@ namespace Project.Controllers
         private readonly DbuniPayContext _db;
 
         IWebHostEnvironment _enviro = null;
-        public MemberController(IWebHostEnvironment p,DbuniPayContext db)
+        public MemberController(IWebHostEnvironment enviro, DbuniPayContext db)
         {
-            _enviro = p;
+            _enviro = enviro;
             _db = db;
         }
 
