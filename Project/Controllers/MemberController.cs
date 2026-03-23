@@ -80,15 +80,7 @@ namespace Project.Controllers
             if (member != null)
             {
                 member.MisHided = false; // 移除
-                try
-                {
-					_db.SaveChanges(); // 保存變更
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"更新失敗: {ex.Message}");
-                    return RedirectToAction("Blacklist");
-                }
+                _db.SaveChanges(); // 保存變更
             }
 
             return RedirectToAction("List"); // 重定向回黑名單頁面
