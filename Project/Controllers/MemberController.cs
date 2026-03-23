@@ -83,6 +83,7 @@ namespace Project.Controllers
                 try
                 {
 					_db.SaveChanges(); // 保存變更
+                    var blacklistedMembers = _db.Tmembers.Where(m => m.MisHided == true).ToList();
                 }
                 catch (Exception ex)
                 {
