@@ -25,14 +25,15 @@ namespace Project.Controllers
             string keyword = vm.txtKeyword;
             IEnumerable<Tmember> datas = null;
 
+
             if (string.IsNullOrEmpty(keyword))
                 datas = _db.Tmembers.Where(m => m.MisHided == false); // 只顯示未加入黑名單的會員
             else
                 datas = _db.Tmembers.Where
                     (p => p.MisHided == false &&
                     (p.Mname.Contains(keyword)
-                || (keyword == "男" && p.Mgender == 0)
-                || (keyword == "女" && p.Mgender == 1)
+                || (keyword == "男" && p.Mgender == 1)
+                || (keyword == "女" && p.Mgender == 0)
                 || p.Maccount.Contains(keyword)
                 || p.Memail.Contains(keyword)
                 || p.Maddress.Contains(keyword)
