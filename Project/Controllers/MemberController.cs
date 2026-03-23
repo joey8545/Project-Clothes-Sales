@@ -26,7 +26,7 @@ namespace Project.Controllers
             IEnumerable<Tmember> datas = null;
 
             if (string.IsNullOrEmpty(keyword))
-                datas = _db.Tmembers.Where(m => m.MisHided == false); // 只顯示未加入黑名單的會員
+                datas = _db.Tmembers.Where(m => m.MisHided == true); // 只顯示未加入黑名單的會員
             else
                 datas = _db.Tmembers.Where
                     (p => p.MisHided == false &&
