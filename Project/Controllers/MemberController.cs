@@ -79,7 +79,7 @@ namespace Project.Controllers
 
             if (member != null)
             {
-                member.MisHided = false; // 移除黑名單
+                member.MisHided = false; // 移除
                 try
                 {
 					_db.SaveChanges(); // 保存變更
