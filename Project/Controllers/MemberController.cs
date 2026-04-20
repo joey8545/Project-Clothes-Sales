@@ -25,14 +25,15 @@ namespace Project.Controllers
             string keyword = vm.txtKeyword;
             IEnumerable<Tmember> datas = null;
 
+
             if (string.IsNullOrEmpty(keyword))
-                datas = _db.Tmembers.Where(m => m.MisHided == false); // 只顯示未加入黑名單的會員
+                datas = _db.Tmembers.Where(m => m.MisHided == true); // 只顯示未加入黑名單的會員
             else
                 datas = _db.Tmembers.Where
                     (p => p.MisHided == false &&
                     (p.Mname.Contains(keyword)
-                || (keyword == "男" && p.Mgender == 0)
-                || (keyword == "女" && p.Mgender == 1)
+                || (keyword == "男" && p.Mgender == 1)
+                || (keyword == "女" && p.Mgender == 0)
                 || p.Maccount.Contains(keyword)
                 || p.Memail.Contains(keyword)
                 || p.Maddress.Contains(keyword)
@@ -78,10 +79,14 @@ namespace Project.Controllers
 
             if (member != null)
             {
-                member.MisHided = false; // 移除黑名單
+                member.MisHided = false; // 移除
                 try
                 {
 					_db.SaveChanges(); // 保存變更
+                    var json = HttpContext.Session.GetString(CDictionary.SK_LOGEDIN_USER);
+                    var currentUser = JsonSerializer.Deserialize<Tmember>(json);
+                    var blacklistedMembers = _db.Tmembers.Where(m => m.MisHided == true).ToList();
+                    List<CMemberWrap> list = blacklistedMembers.Select(t => new CMemberWrap { member = t }).ToList();
                 }
                 catch (Exception ex)
                 {
