@@ -83,6 +83,8 @@ namespace Project.Controllers
                 try
                 {
 					_db.SaveChanges(); // 保存變更
+                    var json = HttpContext.Session.GetString(CDictionary.SK_LOGEDIN_USER);
+                    var currentUser = JsonSerializer.Deserialize<Tmember>(json);
                     var blacklistedMembers = _db.Tmembers.Where(m => m.MisHided == true).ToList();
                     List<CMemberWrap> list = blacklistedMembers.Select(t => new CMemberWrap { member = t }).ToList();
                 }
